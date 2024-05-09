@@ -15,7 +15,7 @@
         }
         #video {
             width: 100%;
-            height: 100dvh;
+            height: 100vh; /* Corrected typo: 100vh instead of 100dvh */
         }
         #video-container {
             margin-bottom: 20px;
@@ -23,31 +23,31 @@
         #url-input {
             width: 100%;
             font-size: 16px;
-            color: #007bff;
-            margin-bottom: 10px;
+            color: #fff;
+            margin-bottom: 4px;
+            background-color: #000;
+            border: 2px solid #333;
+            border-radius: 6px;
+        }
+        #play-button, #clearButton {
+            padding: 2px 12px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
         }
         #play-button {
-            padding: 2px 4px;
-            font-size: 14px;
             background-color: #007bff;
+            color: #000;
+            border: none;
+            border-radius: 5%;
+        }
+        #clearButton {
+            background-color: #911a32;
             color: #fff;
             border: none;
             border-radius: 5%;
-            font-weight: 600;
-            cursor: pointer;
         }
-        #clearBtn {
-            padding: 2px 4px;
-            font-size: 14px;
-            background-color: #cf153a;
-            color: #fff;
-            border: none;
-            border-radius: 5%;
-            font-weight: 600;
-            cursor: pointer;
-            margin: 2px 2px 2px 0px;
-        }
-        #clearBtn,
+        #clearButton:hover,
         #play-button:hover {
             background-color: #666;
         }
@@ -59,7 +59,7 @@
     </div>
     <input type="text" id="url-input" placeholder="Enter HLS Video URL...">
     <button id="play-button" onclick="playVideo()">PLAY</button>
-    <button id="clearBtn" onclick="document.getElementById('url-input').value=''">❌</button>
+    <button id="clearButton" onclick="clearInput()">✖️</button>
 
     <script>
         var video = document.getElementById('video');
@@ -68,12 +68,6 @@
 
         function playVideo() {
             var url = urlInput.value.trim();
-
-            if (!url) {
-                alert('Please enter an HLS video URL.');
-                return;
-            }
-
             if (Hls.isSupported()) {
                 if (hls) {
                     hls.destroy();
@@ -93,6 +87,53 @@
                 alert('HLS is not supported on your browser.');
             }
         }
+
+        function clearInput() {
+            document.getElementById('url-input').value = '';
+        }
+
+        // Paste M3U8 URL into input field.
+        function paste() {
+            if (!navigator.clipboard) {
+                console.error('Clipboard API not supported');
+                return;
+            }
+            navigator.clipboard.readText()
+                .then(function(text) {
+                    if (text.trim() === "") {
+                        alert("Please Enter URL First!");
+                        return;
+                    }
+                    document.getElementById('url-input').value = text.trim();
+                    playVideo();
+                })
+                .catch(function(err) {
+                    console.error('Failed to read clipboard contents: ', err);
+                });
+        }
+
+        // Keyboard Shortcuts for different Button clicks & Functions
+        let arrowRightPressed = false;
+        document.addEventListener("keydown", function(event) {
+            if (event.key === "ArrowRight") {
+                arrowRightPressed = true;
+            }
+            if (arrowRightPressed) {
+                if (event.key === "ArrowUp") {
+                    playVideo();
+                } else if (event.key === "ArrowDown") {
+                    paste();
+                } else if (event.key === "ArrowLeft") {
+                    clearInput();
+                }
+            }
+        });
+
+        document.addEventListener("keyup", function(event) {
+            if (event.key === "ArrowRight") {
+                arrowRightPressed = false;
+            }
+        });
     </script>
 </body>
 </html>
