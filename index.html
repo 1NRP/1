@@ -27,17 +27,29 @@
             margin-bottom: 10px;
         }
         #play-button {
-            padding: 10px 20px;
+            padding: 5px 10px;
             font-size: 18px;
             background-color: #007bff;
             color: #fff;
             border: none;
-            border-radius: 10%;
+            border-radius: 5%;
             font-weight: 800;
             cursor: pointer;
         }
+        #cleartn {
+            padding: 5px 10px;
+            font-size: 18px;
+            background-color: #cf153a;
+            color: #fff;
+            border: none;
+            border-radius: 5%;
+            font-weight: 800;
+            cursor: pointer;
+            margin: 2px 2px 2px 0px;
+        }
+        #clearBtn,
         #play-button:hover {
-            background-color: #0056b3;
+            background-color: #666;
         }
     </style>
 </head>
@@ -47,6 +59,7 @@
     </div>
     <input type="text" id="url-input" placeholder="Enter HLS Video URL...">
     <button id="play-button" onclick="playVideo()">PLAY</button>
+    <button id="clearBtn" onclick="document.getElementById('url-input').value=''">❌</button>
 
     <script>
         var video = document.getElementById('video');
