@@ -20,7 +20,7 @@
             margin-bottom: 4px;
         }
         #url-input {
-            width: 85%;
+            width: 90%;
             color: #b4b4b4;
             height: 30px;
             margin-bottom: 4px;
@@ -55,13 +55,16 @@
 <body>
 
     </div>
-    <input type="text" id="url-input" placeholder="Enter HLS Video URL...">
-    <button id="play-button" onclick="playVideo()">PLAY</button>
-    <button id="clearButton" onclick="clearInput()">✖️</button>
     <div id="video-container">
         <video id="video" controls autoplay></video>
-    <iframe src="https://iptv-org.github.io" style="border:2px #444 solid;" scrolling="yes" frameborder="1" marginheight="5px" marginwidth="5px" height="600vh" width="100%" allowfullscreen></iframe>
-
+    <input type="text" id="url-input" placeholder="Enter HLS Video URL...">
+    <button id="play-button" onclick="playVideo()">PLAY</button>
+    <button id="clearButton" onclick="document.getElementById('url-input').value = ''">✖️</button>
+    
+    <!-- 
+        <iframe src="https://iptv-org.github.io" style="border:2px #444 solid;" scrolling="yes" frameborder="1" marginheight="5px" marginwidth="5px" height="600vh" width="100%" allowfullscreen></iframe>
+    -->
+        
 <script>
         var video = document.getElementById('video');
         var urlInput = document.getElementById('url-input');
@@ -87,10 +90,6 @@
             } else {
                 alert('HLS is not supported on your browser.');
             }
-        }
-
-        function clearInput() {
-            document.getElementById('url-input').value = '';
         }
 
         // Paste M3U8 URL into input field.
