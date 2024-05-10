@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Nihar's Text Reader</title>
+<style>
+  body {
+    background-color: #000;  
+    color: #888;
+  }
+  #container {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+  }
+  .page-container {
+    margin-bottom: 2px;
+  }
+  .page {
+    width: 96vw;
+    height: 200vh;
+    color: #888;
+    border: 2px solid #444;
+    border-radius: 6px;
+    overflow: auto;
+    padding: 2px;
+    font-size: 16px;
+    font-weight: 400;
+    font-family: sans-serif;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+  }
+  .page-number {
+    text-align: center;
+    font-size: 16px;
+    font-weight: 400;
+  }
+  #fileUploader {
+    background-color: #000;
+    padding: 6px;
+    color: #b4b4b4;
+    border: 2px solid #888;
+    border-radius: 10px;
+    cursor: pointer;
+    margin-top: 30%;
+  }
+  #open {
+    background-color: #000;
+    padding: 9px;
+    color: #b4b4b4;
+    border: 2px solid #888;
+    border-radius: 10px;
+    cursor: pointer;
+    margin-top: 30%;
+  }
+  h2 {
+    position: absolute
+    margin-top: 20px;
+    font-size: 24px;
+    font-family: 'cursive', sanshserif;
+    font-weight: 600;
+    color: #888;
+    text-lign: center;
+  }
+  #brightModeBtn {
+    position: absolute;
+    top: 0px;
+    left: 45%;
+    cursor: pointer;
+    border: 2px solid #666;
+    background-color: #333;
+    color: #6666;
+    Border-radius: 10%;
+    padding: 2px 10px;
+    margin: 0px;
+  }
+   /* Code for Bright-Mode toggle. */
+  .brightMode {
+    .page-number,
+    h2,h3,.page,
+    #brightModeBtn {
+      color: #b4b4b4;
+    }
+    #brightModeBtn {
+      border: 2px solid #b4b4b4;
+    }
+  }
+</style>
+</head>
+<body>
+<button id="brightModeBtn" onclick="brightModeFunction()">☀️</button>
+<h2> The only thing that you absolutely have to know, is the location of the library. <h2><h3>- Albert Einstein<h3>
+<h2> I constantly see people rise in life who are not the smartest, sometimes not even the most diligent, but they are learning machines. <h2>
+<h2> Nothing has served me better in my long life than continuous learning. <h2><h3>- Charles Thomas Munger<h3>
+
+<div id="container">
+  <div id="fileInput">
+    <input type="file" id="fileUploader" accept=".txt">
+    <button id="open" onclick="openFile()">OPEN</button>
+  </div>
+</div>
+
+<script>
+// Bright-Mode toggle function.
+  function brightModeFunction() {
+    let element = document.body;
+    element.classList.toggle("brightMode");
+    }
+  
+// File upload and opening setup
+  let textContent = "";
+  function openFile() {
+    const fileInput = document.getElementById('fileUploader');
+    const file = fileInput.files[0];
+    const reader = new FileReader();
+
+    reader.onload = function(event) {
+      textContent = event.target.result;
+      displayTextPages();
+    }
+
+    reader.readAsText(file);
+  }
+
+  function displayTextPages() {
+    const textPagesContainer = document.getElementById('container');
+    textPagesContainer.innerHTML = '';
+    
+    const pageSize = 2500; // Adjust the number of characters per page as needed
+    const totalPages = Math.ceil(textContent.length / pageSize);
+
+    for (let i = 0; i < totalPages; i++) {
+      const start = i * pageSize;
+      const end = (i + 1) * pageSize;
+      const pageContent = textContent.substring(start, end);
+      
+      const pageContainer = document.createElement('div');
+      pageContainer.classList.add('page-container');
+      
+      const pageDiv = document.createElement('div');
+      pageDiv.classList.add('page');
+      pageDiv.textContent = pageContent;
+      
+      const pageNumber = document.createElement('div');
+      pageNumber.classList.add('page-number');
+      pageNumber.textContent = `Page - ${i + 1}`;
+      
+      pageContainer.appendChild(pageDiv);
+      pageContainer.appendChild(pageNumber);
+      
+      textPagesContainer.appendChild(pageContainer);
+    }
+     
+    // Caching of the text file in LocalStorage if browser
+    for (let i = 1; i <= totalPages; i++) {
+      const pageNumber = document.createElement('span');
+      pageNumber.textContent = i;
+      pageNumber.onclick = function() {
+        scrollToPage(i);
+      }
+      pageNumbersContainer.appendChild(pageNumber);
+    }
+  }
+
+  function scrollToPage(pageNumber) {
+    const pages = document.getElementsByClassName('page');
+    const targetPage = pages[pageNumber - 1];
+    targetPage.scrollIntoView({ behavior: 'smooth' });
+  }
+
+  window.onload = function() {
+    // Check if there's a cached file and load it
+    const cachedText = localStorage.getItem('cachedText');
+    if (cachedText) {
+      textContent = cachedText;
+      displayTextPages();
+    }
+  }
+
+  window.onbeforeunload = function() {
+    // Cache the text file
+    localStorage.setItem('cachedText', textContent);
+  }
+</script>
+</body>
+</html>
