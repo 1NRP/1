@@ -1,99 +1,128 @@
+
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Nihar's Notes</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta charset="utf-8">
+  <meta name="theme-color" content="#444">
+  <title>Nihar's Notes</title>
+</head>
 <style>
-  body {
-    background-color: #000;  
-    color: #888;
-  }
-  #textArea {
+body {
+    color: #fff;
+    background-color: #000;
+}
+#header-box {
+    display: flex;
+    flex-direction: row;
+    margin: -25px 0px;
+}
+#textBox {
     width: 96%;
-    height: 85vh;
+    height: 80vh;
     padding: 6px;
     font-family: sans-serif;
     font-size: 15px;
     overflow: auto;
-    background-color: #2a4a6a;
+    background-color: #111136;
     border: none;
-    color: #fff;
+    color: #b4b4b4;
     border-radius: 6px;
-  }
-  #header-box {
-    display: flex;
-    flex-direction: row;
-  }
-  ::placeholder {
+}
+#getNotes {
+    background-color: #61691b;
     color: #b4b4b4;
-    opacity: 2;
-  }
-  #saveBtn {
-    background-color: #000;
-    color: #b4b4b4;
-    border: 2px solid #;
-    border-radius: 4px;
+    border: none;
+    border-radius: 50px;
     cursor: pointer;
-    margin-bottom: 10px;
-    margin-left: 40vw;
-  }
-  h2 {
-    margin: 2px;
-    color: #fff;
+    font-size: 18px;
     font-weight: 800;
-    font-family: cursive, sans-serif;
-  }
-  .alert {
+    padding: 4px 8px;
+    margin: 2px 2px 10px 10vw;
+}
+.alert {
     position: absolute;
     top: 4vh;
-    left: 55vw;
+    left: 50vw;
     transform: translate(-50%, -50%);
-    background-color: #283555;
-    color: #fff;
+    background-color: #61691b;
+    color: #000;
+    font-weight: 900;
     padding: 5px 5px;
-    border: 2px solid #999;
+    border: 2px solid #888;
     border-radius: 5px;
-  }
+}
+h2 {
+    font-family: cursive, sans-serif;
+    font-weight: 900;
+}
+#getNotes:hover {
+    background-color: #444;  
+}
 </style>
-</head>
 <body>
-<div id="header-box">
-  <h2> Nihar's Notes <h2>
-  <button id="saveBtn" onclick="saveNote(); showAlert()"><h2>SAVE<h2></button>
+<!--
+<h4>
+Keyboard Shortcut: Fetch Notes: "ArrowLeft + ArrowDown"
+</h4>
+-->
+    <div id="header-box">
+  <h2> Nihar's&nbspCloud&nbspNotes <h2>
+  <button id="getNotes" onclick="fetchNotes()">SHOW&nbspNOTES</button>
 </div>
-  <textarea id="textArea"></textarea>
-</div>
+    <textarea id="textBox"></textarea>
 <script>
-  // Show "Note Saved" alert when"SAVE" button is clicked
-   function showAlert() {
-   const alertBox = document.createElement('div');
-   alertBox.className = 'alert';
-   alertBox.textContent = 'Note Saved';
-   document.body.appendChild(alertBox);
-   setTimeout(() => {
-   alertBox.remove();
-   }, 1000);
- }
-  
-  // Caching of Notes in browser
-  let textContent = "";
 
-  function saveNote() {
-    // Get the text content from the textarea
-    textContent = document.getElementById('textArea').value;
-    // Cache the text note in LocalStorage
-    localStorage.setItem('cachedNote', textContent);
-  }
+// Retrive the texts
+function fetchNotes () {
+    fetch(`https://infinite-marten-44102.upstash.io/`, {
+  headers: {
+    Authorization: `Bearer AqxGAAIgcDERzC1gQ7mirZ5rFhmB56tN7R-uu2PRqgo3nIJ11kO5vQ`,
+  },
+  body: '["LRANGE", "Cloud_Message", "0", "-1"]',
+  method: 'POST',
+})
+    .then(response => response.json())
+    .then(data => {
+        let lines = [];
+        data.result.forEach(jsonString => {
+            let parsedObject = JSON.parse(jsonString);
+            for (const key in parsedObject) {
+                if (parsedObject.hasOwnProperty(key)) {
+                    lines.push(`${parsedObject[key]}`);
+                }
+            }
+        });
+        const result = lines.join('\n\n');
+        const textbox = document.getElementById('textBox');
+        textbox.value = result;
+    })
+    .catch(error => {
+        console.error('Error fetching or parsing data:', error);
+    });
+}
+// fetchNotes();
 
-  window.onload = function() {
-    // Check if there's a cached note and load it
-    const cachedNote = localStorage.getItem('cachedNote');
-    if (cachedNote) {
-      // Set the cached note in the textarea
-      document.getElementById('textArea').value = cachedNote;
+// Keyboard Shortcut for fetching notes.
+let arrowRightPressed = false;
+document.addEventListener("keydown", function(event) {
+    if (event.key === "ArrowRight") {
+        arrowRightPressed = true;
     }
-  }
+    
+    if (arrowRightPressed) {
+        if (event.key === "ArrowDown") {
+            fetchNotes();
+        }
+    }
+});
+
+document.addEventListener("keyup", function(event) {
+    if (event.key === "ArrowRight") {
+        arrowRightPressed = false;
+    }
+});
 </script>
 </body>
-</html>
+</html> 
+    
