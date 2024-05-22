@@ -4,7 +4,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta charset="utf-8">
   <meta name="theme-color" content="#444">
-  <title>Nihar's Notes</title>
+  <title>Nihar's Cloud Notes</title>
 </head>
 <style>
 body {
@@ -73,34 +73,35 @@ Keyboard Shortcut: Fetch Notes: "ArrowLeft + ArrowDown"
 <script>
 
 // Retrive the texts
-function fetchNotes () {
+function fetchNotes() {
     fetch(`https://infinite-marten-44102.upstash.io/`, {
-  headers: {
-    Authorization: `Bearer AqxGAAIgcDERzC1gQ7mirZ5rFhmB56tN7R-uu2PRqgo3nIJ11kO5vQ`,
-  },
-  body: '["lrange", "Cloud_Message", "0", "-1"]',
-  method: 'POST',
-})
-    .then(response => response.json())
-    .then(data => {
-        let lines = [];
-        data.result.forEach(jsonString => {
-            let parsedObject = JSON.parse(jsonString);
-            for (const key in parsedObject) {
-                if (parsedObject.hasOwnProperty(key)) {
-                    lines.push(`${index}: ${parsedObject[key]}`);
+            headers: {
+                Authorization: `Bearer AqxGAAIgcDERzC1gQ7mirZ5rFhmB56tN7R-uu2PRqgo3nIJ11kO5vQ`,
+            },
+            body: '["LRANGE", "Cloud_Message", "0", "-1"]',
+            method: 'POST',
+        })
+        .then(response => response.json())
+        .then(data => {
+            let lines = [];
+            data.result.forEach((jsonString, index) => { // Add index parameter here
+                let parsedObject = JSON.parse(jsonString);
+                for (const key in parsedObject) {
+                    if (parsedObject.hasOwnProperty(key)) {
+                        lines.push(`${index}: ${parsedObject[key]}`);
+                    }
                 }
-            }
+            });
+            const result = lines.join('\n\n');
+            const textbox = document.getElementById('textBox');
+            textbox.value = result;
+        })
+        .catch(error => {
+            console.error('Error fetching or parsing data:', error);
         });
-        const result = lines.join('\n\n');
-        const textbox = document.getElementById('textBox');
-        textbox.value = result;
-    })
-    .catch(error => {
-        console.error('Error fetching or parsing data:', error);
-    });
 }
 // fetchNotes();
+
 
 // Keyboard Shortcut for fetching notes.
 let arrowRightPressed = false;
