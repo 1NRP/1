@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html>
 <head>
@@ -67,10 +66,10 @@ Keyboard Shortcut: Fetch Notes: "ArrowLeft + ArrowDown"
 </h4>
 -->
     <div id="header-box">
-  <h2> Nihar's&nbspCloud&nbspNotes <h2>
-  <button id="getNotes" onclick="fetchNotes()">SHOW&nbspNOTES</button>
-</div>
-    <textarea id="textBox"></textarea>
+    <h2> Nihar's&nbspCloud&nbspNotes <h2>
+    <button id="getNotes" onclick="fetchNotes()">SHOW&nbspNOTES</button>
+    </div>
+    <textarea id="textBox" readonly></textarea>
 <script>
 
 // Retrive the texts
@@ -79,7 +78,7 @@ function fetchNotes () {
   headers: {
     Authorization: `Bearer AqxGAAIgcDERzC1gQ7mirZ5rFhmB56tN7R-uu2PRqgo3nIJ11kO5vQ`,
   },
-  body: '["LRANGE", "Cloud_Message", "0", "-1"]',
+  body: '["lrange", "Cloud_Message", "0", "-1"]',
   method: 'POST',
 })
     .then(response => response.json())
