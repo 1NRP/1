@@ -18,7 +18,7 @@ body {
 }
 #textBox {
     width: 96%;
-    height: 80vh;
+    height: 80dvh;
     padding: 6px;
     font-family: sans-serif;
     font-size: 15px;
@@ -88,7 +88,7 @@ function fetchNotes () {
             let parsedObject = JSON.parse(jsonString);
             for (const key in parsedObject) {
                 if (parsedObject.hasOwnProperty(key)) {
-                    lines.push(`${parsedObject[key]}`);
+                    lines.push(`${index}: ${parsedObject[key]}`);
                 }
             }
         });
