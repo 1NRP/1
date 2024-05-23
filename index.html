@@ -3,299 +3,49 @@
 <head>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta charset="utf-8">
-  <meta name="theme-color" content="#444">
-  <title>Nihar's Cloud Notes</title>
+  <title>Nihar's Websites</title>
 </head>
 <style>
-body {
+  body {
     color: #fff;
     background-color: #000;
-}
-#textBox {
-    width: 96%;
-    height: 85dvh;
-    padding: 6px;
-    font-family: sans-serif;
-    font-size: 15px;
-    resize: none;
-    overflow: auto;
-    background-color: #111136;
-    border: none;
-    color: #fff;
-    border-radius: 6px;
-}
-#deleteBox {
-    color: #fff;
-    height: auto;
-    min-height: 10%;
-    resize: none;
-    overflow: auto;
-    box-sizing: border-box;
-    width: 100%;
-    overflow: scroll;
-    background-color: #361923;
-    border: 2px solid #444;
-    border-radius: 6px;
-}
-#deleteBtn {
-    background-color: #802;
-    color: #b4b4b4;
-    border: none;
-    font-size: 15px;
-    border-radius: 50px;
-    cursor: pointer;
-    padding: 6px 8px;
-    font-weight: 900;
-    margin: 0px 2px 4px 0px;
-}
-#saveButton {
-    background-color: #205c89;
-    color: #b4b4b4;
-    border: none;
-    font-size: 15px;
-    border-radius: 50px;
-    cursor: pointer;
-    padding: 6px 8px;
-    font-weight: 900;
-    margin: 2px 2px 0px 40%;   
-}
-#getNotes {
-    background-color: #61691b;
-    color: #b4b4b4;
-    border: none;
-    border-radius: 50px;
-    cursor: pointer;
-    font-size: 15px;
-    font-weight: 900;
-    padding: 6px 8px;
-    margin: 2px 2px 0px 12px;
-}
-#getNotes:hover,
-#deleteBtn:hover,
-#saveButton:hover {
+    font-family: fantasy, sans-serif;
+     }
+  a:link, a {
     background-color: #444;
-}
-.saveAlert {
-    position: fixed;
-    top: 5dvh;
-    left: 30dvw;
-    background-color: #167d29;
-    color: #000;
-    font-weight: 900;
-    padding: 5px 5px;
-    border: 2px solid #999;
-    border-radius: 5px;
-}
-.deleteAlert {
-    position: fixed;
-    top: 5dvh;
-    left: 30dvw;
-    background-color: #d12148;
-    color: #000;
-    font-weight: 900;
-    padding: 5px 5px;
-    border: 2px solid #999;
-    border-radius: 5px;
-}
-h2 {
-    font-family: cursive, sans-serif;
-    font-size: 25px;
-    font-weight: 900;
-    margin: 8px 0px -5px 0px;
-}
+    color: #fff879;
+    font-family: arial, sans-serif;
+    font-size: 20px;
+    font-weight: 1000;
+    padding: 4px 20px 5px 20px;
+    border-radius: 6px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    }
+
+    a:hover {
+      background-color: #222;  
+    }
+    h2 {
+      color: #359998;
+      font-size: 30px;
+      font-weight: 100;
+    }
 </style>
-<body>
-<!--
-<h4>
-Type @@ to consider texts after it as "Last Note" and save the texts.
-In case of long texts containing \n\n , copy the text and paste in the deleteBox.
-Keyboard Shortcuts: Fetch Notes: "ArrowRight + ArrowDown", Save Notes: "ArrowRight + ArrowUp"</h4>
--->
-    <h2> Nihar's&nbspCloud&nbspNotes <h2>
-    <textarea id="textBox"></textarea> 
-    <button id="deleteBtn" onclick="deleteNote()">DELETE</button>
-    <button id="saveButton" onclick="saveNotes()">SAVE</button>
-    <button id="getNotes" onclick="getNote()">VIEW</button>
-    <textarea id="deleteBox"></textarea>
 
-<script>
-// Auto expand deleteBox if texts overflow, to properly see what will be deleted.
-
-  
-  document.addEventListener('DOMContentLoaded', function() {
-  const textarea = document.getElementById('deleteBox');
-  textarea.addEventListener('input', function() {
-    this.style.height = 'auto'; // Reset the height
-    this.style.height = this.scrollHeight + 'px'; // Set the height to the scroll height
-  });
-  // Trigger input event to adjust height if there's initial content
-  textarea.dispatchEvent(new Event('input'));
-});
-
-// Show "Last Note Saved" alert when "OK" response (200) is received from the server.
-function showAlert() {
-   const alertBox = document.createElement('div');
-   alertBox.className = 'saveAlert';
-   alertBox.textContent = '☑️ Last Note Saved';
-   document.body.appendChild(alertBox);
-   setTimeout(() => {
-   alertBox.remove();
-   }, 1000);
-}
-
-// Show "Note Deleted" alert
-function showDeleteAlert() {
-   const alertBox = document.createElement('div');
-   alertBox.className = 'deleteAlert';
-   alertBox.textContent = '✖ Note Deleted';
-   document.body.appendChild(alertBox);
-   setTimeout(() => {
-   alertBox.remove();
-   }, 1000);
-}
-  
-// Save the Last Line (LL) in KV Cloud storage.
-    async function saveNotes() {
-      const textarea = document.getElementById('textBox');
-      const textValue = textarea.value.trim();
-      const lines = textValue.split('@@');
-      const lastSentence = lines[lines.length - 1].trim();
-        if (lastSentence) {
-            try {
-                const response = await fetch('/api/saveNote', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify([lastSentence]),
-                });
-
-                if (response.ok) {
-                    console.log('Note sent to Vercel KV.');
-                    showAlert();
-                } else {
-                    const errorData = await response.json();
-                    console.error('Error from server:', errorData.error);
-                }
-            } catch (error) {
-                console.error('Error sending note to Vercel KV:', error);
-            }
-        }
-    }
-
-// Delete the specific Note in KV Cloud storage.
-    async function deleteNote() {
-      const deletearea = document.getElementById('deleteBox');
-      const deleteValue = deletearea.value.trim();
-        if (deleteValue) {
-            try {
-                const response = await fetch('/api/deleteNote', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify([deleteValue]),
-                });
-
-                if (response.ok) {
-                    console.log('Note deleted in Vercel KV.');
-                    showDeleteAlert();
-                } else {
-                    const errorData = await response.json();
-                    console.error('Error from server:', errorData.error);
-                }
-            } catch (error) {
-                console.error('Error deleting note in Vercel KV:', error);
-            }
-        }
-    }
-  
-// Retrive the texts from KV Cloud storage.
-  async function getNote() {
-      const response = await fetch('/api/getNote', {
-          method: 'GET',
-        })
-        .then(response => response.json())
-        .then(data => {
-            let lines = [];
-            data.result.forEach((jsonString) => { // Add index parameter here
-                let parsedObject = JSON.parse(jsonString);
-                for (const key in parsedObject) {
-                    if (parsedObject.hasOwnProperty(key)) {
-                        lines.push(`${parsedObject[key]}`);
-                    }
-                }
-            });
-            const result = lines.join('\n\n');
-            const textbox = document.getElementById('textBox');
-            textbox.value = result;
-        })
-        .catch(error => {
-            console.error('Error fetching or parsing data:', error);
-        });
-}
-// fetchNotes();
-  
-// Keyboard Shortcuts for different Functions
-let arrowRightPressed = false;
-document.addEventListener("keydown", function(event) {
-    if (event.key === "ArrowRight") {
-        arrowRightPressed = true;
-    }
+<center>
     
-    if (arrowRightPressed) {
-        if (event.key === "ArrowUp") {
-            saveNotes();
-        } else if (event.key === "ArrowDown") {
-            getNote();
-        } else if (event.key === "End") {
-            deleteNote();
-        }
-    }
-});
+    <h2>WEBPAGE LINKS</h2>
+    <a href="https://nrp10.github.io/play">PLAY</a>
+    <p></p><a href="https://1msg.vercel.app">Cloud Notes</a></p>
+    <p><a href="code">Live Page Source Code Editor</a></p>
+    <p><a href="hls">HLS Player For PC</a></p>
+    <p><a href="note">View Cloud Notes</a></p>
+    <p><a href="offnote">Offline Notes</a><p>
+    <p><a href="text">Text Reader</a></p>
+    
+</center>
 
-document.addEventListener("keyup", function(event) {
-    if (event.key === "ArrowRight") {
-        arrowRightPressed = false;
-    }
-});
-
-function triggerInputEvent(element) {
-    const event = new Event('input', {
-      bubbles: true,
-      cancelable: true
-    });
-    element.dispatchEvent(event);
-  }
-// Function to paste specific note into deleteBox 
-function pasteLineText(event) {
-    var textBox = document.getElementById('textBox');
-    var text = textBox.value;
-    var cursorPosition = textBox.selectionStart; // Get cursor position
-    var startOfLine = text.lastIndexOf('\n\n', cursorPosition - 1); // Find the start of the line
-    var endOfLine = text.indexOf('\n\n', cursorPosition); // Find the end of the line
-
-    // If no line break is found before the cursor position, start of the text
-    if (startOfLine === -1) {
-        startOfLine = 0;
-    } else {
-        startOfLine += 2; // Move past the line break
-    }
-
-    // If no line break is found after the cursor position, end of the text
-    if (endOfLine === -1) {
-        endOfLine = text.length;
-    }
-    var lineText = text.substring(startOfLine, endOfLine);
-       document.getElementById('deleteBox').value = lineText;
-}
-// getElementById('textBox').onclick = pasteLineText;
-document.getElementById('textBox').onclick = function() {
-  pasteLineText();
-  textarea.dispatchEvent(new Event('input'));
-};
-
-  
-</script>
-</body>
+</body> 
 </html>
