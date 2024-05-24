@@ -69,11 +69,11 @@ Keyboard Shortcut: Fetch Notes: "ArrowLeft + ArrowDown"
         .then(response => response.json())
         .then(data => {
             let lines = [];
-            data.result.forEach((jsonString) => { // Add index parameter here
+            data.result.forEach((jsonString, index) => {  // Add index parameter here
                 let parsedObject = JSON.parse(jsonString);
                 for (const key in parsedObject) {
                     if (parsedObject.hasOwnProperty(key)) {
-                        lines.push(`${parsedObject[key]}`);
+                        lines.push(`${index + 1}. ${parsedObject[key]}`);
                     }
                 }
             });
