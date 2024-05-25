@@ -63,7 +63,7 @@ Keyboard Shortcut: Fetch Notes: "ArrowLeft + ArrowDown"
 
 // Retrive the texts
   async function getNote() {
-      const response = await fetch('https://1msg.vercel.app/api/getNote', {
+      const response = await fetch('https://1msg.vercel.app/api/Note/getNote', {
           method: 'GET',
         })
         .then(response => response.json())
