@@ -189,7 +189,7 @@ function notFoundAlert() {
     async function saveNotes() {
       const textarea = document.getElementById('textBox');
       const textValue = textarea.value.trim();
-      const lines = textValue.split('\n\n');
+      const lines = textValue.split('\n\n\n');
       const lastSentence = lines[lines.length - 1].trim();
         if (lastSentence) {
             try {
