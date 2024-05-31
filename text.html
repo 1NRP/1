@@ -77,25 +77,28 @@
     padding: 2px 10px;
     margin: 0px;
   }
-   /* Code for Bright-Mode toggle. */
+  
+  /* Code for Bright-Mode toggle. */
   .brightMode {
     .page-number,
-    h2,h3,.page,
-    #brightModeBtn {
+    h2,h3,.page {
       color: #b4b4b4;
     }
-    #brightModeBtn {
-      border: 2px solid #b4b4b4;
+  }
+  /* Code for Brighter-Mode toggle. */
+  .brighterMode {
+    .page-number,
+    h2,h3,.page {
+      color: #fff;
     }
   }
 </style>
 </head>
 <body>
-<button id="brightModeBtn" onclick="brightModeFunction()">☀️</button>
-<h2> The only thing that you absolutely have to know, is the location of the library. <h2><h3>- Albert Einstein <h3>
+<!-- <h5> Click on 'Albert Einstein' to toggle Bright-Mode and on "Charles Thomas Munger' to toggle Brighter-Mode. <h5> --> 
+<h2> The only thing that you absolutely have to know, is the location of the library. <h2><h3 onclick="brightModeFunction()">- Albert Einstein <h3>
 <h2> I constantly see people rise in life who are not the smartest, sometimes not even the most diligent, but they are learning machines. <h2>
-<h2> Nothing has served me better in my long life than continuous learning. <h2><h3>- Charles Thomas Munger <h3>
-
+<h2> Nothing has served me better in my long life than continuous learning. <h2><h3 onclick="brighterMode()">- Charles Thomas Munger <h3>
 <h2> People think focus means saying yes to the thing you've got to focus on. But that's not what it means at all. It means saying no to the hundred other good ideas that there are. You have to pick carefully. I'm actually as proud of the things we haven't done as the things I have done. Innovation is saying no to 1,000 things. <h2><h3>- Steven Paul Jobs <h3>
 <div id="container">
   <div id="fileInput">
@@ -110,6 +113,11 @@
     let element = document.body;
     element.classList.toggle("brightMode");
     }
+// Brighter-Mode toggle function.
+  function brighterMode() {
+    let element = document.body;
+    element.classList.toggle("brighterMode");
+  }
   
 // File upload and opening setup
   let textContent = "";
