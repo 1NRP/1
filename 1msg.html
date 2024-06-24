@@ -302,8 +302,8 @@ function pasteLineText(event) {
     var textBox = document.getElementById('textBox');
     var text = textBox.value;
     var cursorPosition = textBox.selectionStart; // Get cursor position
-    var startOfLine = text.lastIndexOf('=-=-=-=-=-==-=-=-=-=-==-=-=-=-=-==-=-=-=-=-=-=-=-=-=', cursorPosition - 30); // Find the start of the line
-    var endOfLine = text.indexOf('=-=-=-=-=-==-=-=-=-=-==-=-=-=-=-==-=-=-=-=-=-=-=-=-=', cursorPosition); // Find the end of the line
+    var startOfLine = text.lastIndexOf('\n=-=-=-=-=-==-=-=-=-=-==-=-=-=-=-==-=-=-=-=-=-=-=-=-=\n', cursorPosition); // Find the start of the line
+    var endOfLine = text.indexOf('\n=-=-=-=-=-==-=-=-=-=-==-=-=-=-=-==-=-=-=-=-=-=-=-=-=\n', cursorPosition); // Find the end of the line
 
     // If no line break is found before the cursor position, start of the text
     if (startOfLine === -1) {
