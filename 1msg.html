@@ -192,7 +192,7 @@ function notFoundAlert() {
       const lastSentence = lines[lines.length - 1].trim();
         if (lastSentence) {
             try {
-                const response = await fetch('https://1msg.vercel.app/api/Note/saveNote', {
+                const response = await fetch('https://1msg-bq1zepmxs-1nrp.vercel.app/api/Note/saveNote', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
@@ -220,7 +220,7 @@ function notFoundAlert() {
     
     if (deleteValue) {
         try {
-            const response = await fetch('https://1msg.vercel.app/api/Note/deleteNote', {
+            const response = await fetch('https://1msg-bq1zepmxs-1nrp.vercel.app/api/Note/deleteNote', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -249,7 +249,7 @@ function notFoundAlert() {
 
 // Retrive the texts from KV Cloud storage.
   async function getNote() {
-      const response = await fetch('https://1msg.vercel.app/api/Note/getNote', {
+      const response = await fetch('https://1msg-bq1zepmxs-1nrp.vercel.app/api/Note/getNote', {
           method: 'GET',
         })
         .then(response => response.json())
