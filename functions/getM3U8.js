@@ -8,7 +8,7 @@ const PORT = process.env.PORT || 3000;
 app.use(express.json());
 // CORS options
 const corsOptions = {
-  origin: ['https://1msg.vercel.app', 'https://1nrp.github.io'],
+  origin: ['https://1msg.vercel.app', 'https://1nrp.github.io', 'https://1nrp.pages.dev'],
   optionsSuccessStatus: 200,
   exposedHeaders: ['Content-Type']
 };
@@ -16,7 +16,7 @@ const corsOptions = {
 app.use(cors(corsOptions));
 
 // Endpoint to handle the process
-app.post('/api/Play/get-M3U8', async (req, res) => {
+app.post('/getM3U8', async (req, res) => {
   try {
     const { shortURL } = req.body;
     // Step 2 and 3: Fetching data from Terabox API and extracting necessary data
