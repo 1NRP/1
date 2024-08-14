@@ -26,21 +26,26 @@ var extraStuff = '<div style="position:absolute; margin:0em; bottom:0em; right:0
 var old = '';      
 
 function init() {
-  // Fetch the HTML content of the website and set it as defaultStuff.
-  fetch('https://1nrp.github.io/vid')
-    .then(response => response.text())
-    .then(data => {
-      defaultStuff = data;
-      // Initialize the editbox with the fetched content
-      window.editbox.document.write(editboxHTML);
-      window.editbox.document.close();
-      window.editbox.document.f.ta.value = defaultStuff;
-      update();
-    })
-    .catch(error => {
-      console.error('Error fetching content:', error);
-    });
+  var url = prompt("Enter URL:", "https://example.com");
+  
+  // Check if the user entered a URL
+  if (url) {
+    // Fetch the HTML content of the specified URL and set it as defaultStuff
+    fetch(url)
+      .then(response => response.text())
+      .then(data => {
+        defaultStuff = data;
+        window.editbox.document.write(editboxHTML);
+        window.editbox.document.close();
+        window.editbox.document.f.ta.value = defaultStuff;
+        update();
+      })
+      .catch(error => {
+        console.error('Error fetching source code of the URL:', error);
+      });
+  }
 }
+
 function update() {
   var textarea = window.editbox.document.f.ta;
   var d = dynamicframe.document; 
