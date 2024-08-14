@@ -1,4 +1,4 @@
-<!--  VID Website Editor.  -->
+<!--  Website Editor With URL-Source-Code Fetching Functionality. -->
 <!DOCTYPE html>
 <html>
 <head>
@@ -21,28 +21,32 @@ var editboxHTML =
 '<\/form>' +
 '<\/body>' +
 '<\/html>';
-var defaultStuff = '';
-var extraStuff = '<div style="position:absolute; margin:0em; bottom:0em; right:0em;"><small>\n  <\/a>.\n<\/small><\/div>';
+var defaultValue = '';
 var old = '';      
 
+// Initial function to fetch source code of an webpage.
 function init() {
-  var url = prompt("Enter URL:", "https://example.com");
-  
-  // Check if the user entered a URL
-  if (url) {
-    // Fetch the HTML content of the specified URL and set it as defaultStuff
-    fetch(url)
+  var URL = prompt("Enter URL To Fetch HTML Code Of:", "https://");
+  // If URL is neither null nor 'https://', it fetches URL. 'https://' is given because it is the placeholder and might get clicked 'OK'.
+  // If user clicks 'CANCEL', URL value is taken as 'null'.
+  if (URL && URL !== 'https://') {
+    fetch(URL)
       .then(response => response.text())
       .then(data => {
-        defaultStuff = data;
+        defaultValue = data;
         window.editbox.document.write(editboxHTML);
         window.editbox.document.close();
-        window.editbox.document.f.ta.value = defaultStuff;
+        window.editbox.document.f.ta.value = defaultValue;
         update();
       })
       .catch(error => {
         console.error('Error fetching source code of the URL:', error);
       });
+  } else {
+        window.editbox.document.write(editboxHTML);
+        window.editbox.document.close();
+        window.editbox.document.f.ta.value = defaultValue;
+        update();
   }
 }
 
@@ -53,8 +57,7 @@ function update() {
     old = textarea.value;
     d.open();
     d.write(old);
-    if (old.replace(/[\r\n]/g,'') == defaultStuff.replace(/[\r\n]/g,''))
-      d.write(extraStuff);
+    if (old.replace(/[\r\n]/g,'') == defaultValue.replace(/[\r\n]/g,''))
     d.close();
   }
   window.setTimeout(update, 1000);
@@ -67,66 +70,6 @@ function update() {
 </frameset>
 </html>
 
-<!--  Clear canvas without any pre-existing text in the Editor.
-<!DOCTYPE html>
-<html>
-<head>
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Nihar's Webpage Editor</title>
-<script type="text/javascript">
-
-var editboxHTML = 
-'<html class="expand close">' +
-'<head>' +
-'<style type="text/css">' +
-'.expand { width: 100%; height: 100%; }' +
-'.close { border: none; font-size: 100%; color: #fff; margin: 0px; padding: 0px; }' +
-'html,body { overflow: hidden; }' +
-'<\/style>' +
-'<\/head>' +
-'<body class="expand close">' +
-'<form class="expand close" name="f">' +
-'<textarea class="expand close" style="background: #222;" name="ta" wrap="hard" spellcheck="false">' +
-'<\/textarea>' +
-'<\/form>' +
-'<\/body>' +
-'<\/html>';
-var defaultStuff = '';
-var extraStuff = '<div style="position:absolute; margin:0em; bottom:0em; right:0em;"><small>\n  <\/a>.\n<\/small><\/div>';
-var old = '';      
-function init()
-{
-  window.editbox.document.write(editboxHTML);
-  window.editbox.document.close();
-  window.editbox.document.f.ta.value = defaultStuff;
-  update();
-}
-
-function update()
-{
-  var textarea = window.editbox.document.f.ta;
-  var d = dynamicframe.document; 
-
-  if (old != textarea.value) {
-    old = textarea.value;
-    d.open();
-    d.write(old);
-    if (old.replace(/[\r\n]/g,'') == defaultStuff.replace(/[\r\n]/g,''))
-      d.write(extraStuff);
-    d.close();
-  }
-
-  window.setTimeout(update, 1000);
-}
-
-</script>
-</head>
-<frameset resizable="yes" rows="60%,*" onload="init();">
-  <frame name="editbox" src="javascript:'';">
-  <frame name="dynamicframe" src="javascript:'';">
-</frameset>
-</html>
--->
 
 <!--  Includes Iframe option on loading.
 <!DOCTYPE html>
