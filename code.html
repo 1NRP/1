@@ -1,4 +1,5 @@
-<!--  Website Editor With URL-Source-Code Fetching Functionality. -->
+
+<!--  Website Editor With URL-Source-Code Fetching Functionality. 
 <!DOCTYPE html>
 <html>
 <head>
@@ -69,7 +70,82 @@ function update() {
   <frame name="dynamicframe" src="javascript:'';">
 </frameset>
 </html>
+-->
+<!DOCTYPE html>
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Nihar's Webpage Editor</title>
+  <!-- Prism CSS -->
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css" rel="stylesheet" />
+  <!-- Prism JS -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+  <!-- Prism Language CSS -->
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-html.min.css" rel="stylesheet" />
+  
+  <script type="text/javascript">
+    var editboxHTML = 
+    '<html class="expand close">' +
+    '<head>' +
+    '<style type="text/css">' +
+    '.expand { width: 100%; height: 100%; }' +
+    '.close { border: none; font-size: 100%; color: #fff; margin: 0px; padding: 0px; }' +
+    'html,body { overflow: hidden; }' +
+    '.code { background: #222; color: #fff; padding: 10px; border-radius: 5px; }' +
+    '</style>' +
+    '</head>' +
+    '<body class="expand close" onload="document.f.ta.focus(); document.f.ta.select();">' +
+    '<form class="expand close" name="f">' +
+    '<textarea class="expand close code" name="ta" wrap="hard" spellcheck="false"></textarea>' +
+    '</form>' +
+    '</body>' +
+    '</html>';
+    var defaultValue = '';
+    var old = '';      
 
+    function init() {
+      var URL = prompt("Enter URL To Fetch HTML Code Of:", "https://");
+      if (URL && URL !== 'https://') {
+        fetch(URL)
+          .then(response => response.text())
+          .then(data => {
+            defaultValue = data;
+            window.editbox.document.write(editboxHTML);
+            window.editbox.document.close();
+            window.editbox.document.f.ta.value = defaultValue;
+            update();
+          })
+          .catch(error => {
+            console.error('Error fetching source code of the URL:', error);
+          });
+      } else {
+        window.editbox.document.write(editboxHTML);
+        window.editbox.document.close();
+        window.editbox.document.f.ta.value = defaultValue;
+        update();
+      }
+    }
+
+    function update() {
+  var textarea = window.editbox.document.f.ta;
+  var d = dynamicframe.document; 
+  if (old != textarea.value) {
+    old = textarea.value;
+    d.open();
+    d.write('<html><head><link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css" rel="stylesheet" /></head><body><pre><code class="language-html">');
+    d.write(Prism.highlight(old, Prism.languages.html, 'html'));
+    d.write('</code></pre></body></html>');
+    d.close();
+  }
+  window.setTimeout(update, 1000);
+}
+
+  </script>
+</head>
+<frameset resizable="yes" rows="60%,*" onload="init();">
+  <frame name="editbox" src="javascript:'';">
+  <frame name="dynamicframe" src="javascript:'';">
+</frameset>
+</html>
 
 <!--  Includes Iframe option on loading.
 <!DOCTYPE html>
