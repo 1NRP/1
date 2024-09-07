@@ -72,35 +72,53 @@ function update() {
 </html>
 -->
 <!DOCTYPE html>
+<html>
 <head>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Nihar's Webpage Editor</title>
-  <!-- CodeMirror CSS -->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.3/codemirror.min.css">
-  <!-- CodeMirror Theme -->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.3/theme/dracula.min.css">
-  <!-- CodeMirror JS -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.3/codemirror.min.js"></script>
-  <!-- CodeMirror Mode for HTML -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.3/mode/xml/xml.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.3/mode/htmlmixed/htmlmixed.min.js"></script>
-  
+  <!-- Prism CSS -->
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css" rel="stylesheet" />
+  <style>
+    .editor-container {
+      display: flex;
+      flex-direction: row;
+    }
+    .code-edit {
+      width: 50%;
+      height: 100%;
+      overflow-y: auto;
+      background: #222;
+      color: #fff;
+      padding: 10px;
+      border-right: 1px solid #555;
+    }
+    .code-preview {
+      width: 50%;
+      height: 100%;
+      overflow-y: auto;
+      background: #f5f5f5;
+    }
+    .code-preview pre {
+      margin: 0;
+      padding: 10px;
+      overflow: auto;
+      border: none;
+      background: inherit;
+    }
+    .code-preview code {
+      background: inherit;
+    }
+  </style>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-html.min.js"></script>
+</head>
+<body onload="init();">
+  <div class="editor-container">
+    <div id="code-edit" class="code-edit" contenteditable="true" oninput="updateHighlighting();"></div>
+    <div id="code-preview" class="code-preview"></div>
+  </div>
+
   <script type="text/javascript">
-    var editboxHTML = 
-    '<html class="expand close">' +
-    '<head>' +
-    '<style type="text/css">' +
-    '.expand { width: 100%; height: 100%; }' +
-    '.close { border: none; font-size: 100%; color: #fff; margin: 0px; padding: 0px; }' +
-    'html,body { overflow: hidden; }' +
-    '</style>' +
-    '</head>' +
-    '<body class="expand close" onload="initializeEditor();">' +
-    '<form class="expand close" name="f">' +
-    '<textarea id="code" name="ta" wrap="hard" spellcheck="false"></textarea>' +
-    '</form>' +
-    '</body>' +
-    '</html>';
     var defaultValue = '';
     var old = '';
 
@@ -111,54 +129,38 @@ function update() {
           .then(response => response.text())
           .then(data => {
             defaultValue = data;
-            window.editbox.document.open();
-            window.editbox.document.write(editboxHTML);
-            window.editbox.document.close();
-            window.editbox.document.f.ta.value = defaultValue;
-            update();
+            document.getElementById('code-edit').innerText = defaultValue;
+            updateHighlighting();
           })
           .catch(error => {
             console.error('Error fetching source code of the URL:', error);
           });
       } else {
-        window.editbox.document.open();
-        window.editbox.document.write(editboxHTML);
-        window.editbox.document.close();
-        window.editbox.document.f.ta.value = defaultValue;
-        update();
+        document.getElementById('code-edit').innerText = defaultValue;
+        updateHighlighting();
       }
     }
 
-    function initializeEditor() {
-      var editor = CodeMirror.fromTextArea(window.editbox.document.getElementById('code'), {
-        mode: 'htmlmixed',
-        theme: 'dracula',
-        lineNumbers: true,
-        matchBrackets: true
-      });
-      editor.on('change', function() {
-        update();
-      });
-    }
+    function updateHighlighting() {
+      var editor = document.getElementById('code-edit');
+      var preview = document.getElementById('code-preview');
+      var code = editor.innerText;
 
-    function update() {
-      var editor = CodeMirror.getDoc(window.editbox.document.getElementById('code'));
-      var code = editor.getValue();
-      var d = dynamicframe.document;
+      // Update the highlighted code
       if (old !== code) {
         old = code;
-        d.open();
-        d.write('<html><head></head><body>' + code + '</body></html>');
-        d.close();
+        var highlightedCode = Prism.highlight(code, Prism.languages.html, 'html');
+        editor.innerHTML = highlightedCode;
+
+        // Ensure the text area remains editable
+        editor.contentEditable = true;
+
+        // Update the dynamic frame with rendered HTML
+        preview.innerHTML = code;
       }
-      window.setTimeout(update, 1000);
     }
   </script>
-</head>
-<frameset resizable="yes" rows="60%,*" onload="init();">
-  <frame name="editbox" src="javascript:'';">
-  <frame name="dynamicframe" src="javascript:'';">
-</frameset>
+</body>
 </html>
 
 <!--  Includes Iframe option on loading.
