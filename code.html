@@ -70,13 +70,13 @@ function update() {
   <frame name="dynamicframe" src="javascript:'';">
 </frameset>
 </html>
--->
+
 <!DOCTYPE html>
 <html>
 <head>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Nihar's Webpage Editor</title>
-  <!-- Prism CSS -->
+  
   <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css" rel="stylesheet" />
   <style>
     .editor-container {
@@ -161,6 +161,82 @@ function update() {
     }
   </script>
 </body>
+</html>
+-->
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Nihar's Webpage Editor</title>
+<script type="text/javascript">
+var editboxHTML = 
+'<html class="expand close">' +
+'<head>' +
+'<style type="text/css">' +
+'.expand { width: 100%; height: 100%; }' +
+'.close { border: none; font-size: 100%; color: #fff; margin: 0px; padding: 0px; }' +
+'html,body { overflow: hidden; }' +
+'<\/style>' +
+'<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/default.min.css">' +
+'<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"><\/script>' +
+'<script type="text/javascript">' +
+'window.onload = function() { hljs.highlightAll(); };' +
+'<\/script>' +
+'<\/head>' +
+'<body class="expand close" onload="document.f.ta.focus(); document.f.ta.select();">' +
+'<form class="expand close" name="f">' +
+'<pre><code>' +
+'<textarea class="expand close" style="background: #222;" name="ta" wrap="hard" spellcheck="false">' +
+'<\/textarea>' +
+'<\/code></pre>' +
+'<\/form>' +
+'<\/body>' +
+'<\/html>';
+var defaultValue = '';
+var old = '';      
+
+// Initial function to fetch source code of a webpage.
+function init() {
+  var URL = prompt("Enter URL To Fetch HTML Code Of:", "https://");
+  if (URL && URL !== 'https://') {
+    fetch(URL)
+      .then(response => response.text())
+      .then(data => {
+        defaultValue = data;
+        window.editbox.document.write(editboxHTML);
+        window.editbox.document.close();
+        window.editbox.document.f.ta.value = defaultValue;
+        update();
+      })
+      .catch(error => {
+        console.error('Error fetching source code of the URL:', error);
+      });
+  } else {
+        window.editbox.document.write(editboxHTML);
+        window.editbox.document.close();
+        window.editbox.document.f.ta.value = defaultValue;
+        update();
+  }
+}
+
+function update() {
+  var textarea = window.editbox.document.f.ta;
+  var d = dynamicframe.document; 
+  if (old != textarea.value) {
+    old = textarea.value;
+    d.open();
+    d.write('<pre><code>' + old + '</code></pre>');
+    d.close();
+    hljs.highlightAll();  // Trigger syntax highlighting
+  }
+  window.setTimeout(update, 1000);
+}
+</script>
+</head>
+<frameset resizable="yes" cols="60%,*" onload="init();">
+  <frame name="editbox" src="javascript:'';">
+  <frame name="dynamicframe" src="javascript:'';">
+</frameset>
 </html>
 
 <!--  Includes Iframe option on loading.
