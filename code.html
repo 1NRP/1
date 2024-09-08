@@ -72,6 +72,8 @@ function update() {
 </html>
 -->
 
+
+
 <!DOCTYPE html>
 <html>
 <head>
@@ -87,26 +89,26 @@ var editboxHTML =
 'html,body { overflow: hidden; }' +
 'pre { margin: 0; padding: 10px; }' + // Add styling for <pre> tags
 'code { display: block; }' +          // Add styling for <code> tags
+'#editor { background: #222; color: #fff; padding: 10px; overflow: auto; height: 100%; }' + // Styling for the editable div
 '<\/style>' +
 '<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/default.min.css">' + // Include Highlight.js CSS
 '<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"><\/script>' + // Include Highlight.js JS
 '<script>' +
 'window.onload = function() {' +
-'    document.f.ta.addEventListener("input", function() {' +
-'        var code = this.value;' +
-'        var formattedCode = "<pre><code>" + code.replace(/</g, "&lt;").replace(/>/g, "&gt;") + "</code></pre>";' +
-'        var highlighted = hljs.highlightAuto(formattedCode).value;' +
+'    const editor = document.getElementById("editor");' +
+'    editor.addEventListener("input", function() {' +
+'        const code = editor.innerText;' +
+'        const formattedCode = "<pre><code>" + code.replace(/</g, "&lt;").replace(/>/g, "&gt;") + "</code></pre>";' +
+'        const highlighted = hljs.highlightAuto(formattedCode).value;' +
 '        document.getElementById("code-display").innerHTML = highlighted;' +
 '    });' +
-'    document.f.ta.focus();' +
-'    document.f.ta.select();' +
+'    editor.focus();' +
 '}' +
 '<\/script>' +
 '<\/head>' +
 '<body class="expand close">' +
 '<form class="expand close" name="f">' +
-'<textarea class="expand close" style="background: #222; color: #fff;" name="ta" wrap="hard" spellcheck="false">' +
-'<\/textarea>' +
+'<div id="editor" contenteditable="true"></div>' + // Use contenteditable div
 '<div id="code-display"></div>' + // Add a div for displaying highlighted code
 '<\/form>' +
 '<\/body>' +
@@ -127,7 +129,7 @@ function init() {
         defaultValue = data;
         window.editbox.document.write(editboxHTML);
         window.editbox.document.close();
-        window.editbox.document.f.ta.value = defaultValue;
+        window.editbox.document.getElementById('editor').innerText = defaultValue;
         update();
       })
       .catch(error => {
@@ -136,16 +138,16 @@ function init() {
   } else {
     window.editbox.document.write(editboxHTML);
     window.editbox.document.close();
-    window.editbox.document.f.ta.value = defaultValue;
+    window.editbox.document.getElementById('editor').innerText = defaultValue;
     update();
   }
 }
 
 function update() {
-  var textarea = window.editbox.document.f.ta;
+  var editor = window.editbox.document.getElementById('editor');
   var d = dynamicframe.document; 
-  if (old != textarea.value) {
-    old = textarea.value;
+  if (old != editor.innerText) {
+    old = editor.innerText;
     d.open();
     d.write(old);
     if (old.replace(/[\r\n]/g,'') == defaultValue.replace(/[\r\n]/g,''))
@@ -162,178 +164,8 @@ function update() {
 </html>
 
 
-<!--
-<!DOCTYPE html>
-<html>
-<head>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Nihar's Webpage Editor</title>
-  
-  <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css" rel="stylesheet" />
-  <style>
-    .editor-container {
-      display: flex;
-      flex-direction: row;
-    }
-    .code-edit {
-      width: 50%;
-      height: 100%;
-      overflow-y: auto;
-      background: #222;
-      color: #fff;
-      padding: 10px;
-      border-right: 1px solid #555;
-    }
-    .code-preview {
-      width: 50%;
-      height: 100%;
-      overflow-y: auto;
-      background: #f5f5f5;
-    }
-    .code-preview pre {
-      margin: 0;
-      padding: 10px;
-      overflow: auto;
-      border: none;
-      background: inherit;
-    }
-    .code-preview code {
-      background: inherit;
-    }
-  </style>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-html.min.js"></script>
-</head>
-<body onload="init();">
-  <div class="editor-container">
-    <div id="code-edit" class="code-edit" contenteditable="true" oninput="updateHighlighting();"></div>
-    <div id="code-preview" class="code-preview"></div>
-  </div>
-
-  <script type="text/javascript">
-    var defaultValue = '';
-    var old = '';
-
-    function init() {
-      var URL = prompt("Enter URL To Fetch HTML Code Of:", "https://");
-      if (URL && URL !== 'https://') {
-        fetch(URL)
-          .then(response => response.text())
-          .then(data => {
-            defaultValue = data;
-            document.getElementById('code-edit').innerText = defaultValue;
-            updateHighlighting();
-          })
-          .catch(error => {
-            console.error('Error fetching source code of the URL:', error);
-          });
-      } else {
-        document.getElementById('code-edit').innerText = defaultValue;
-        updateHighlighting();
-      }
-    }
-
-    function updateHighlighting() {
-      var editor = document.getElementById('code-edit');
-      var preview = document.getElementById('code-preview');
-      var code = editor.innerText;
-
-      // Update the highlighted code
-      if (old !== code) {
-        old = code;
-        var highlightedCode = Prism.highlight(code, Prism.languages.html, 'html');
-        editor.innerHTML = highlightedCode;
-
-        // Ensure the text area remains editable
-        editor.contentEditable = true;
-
-        // Update the dynamic frame with rendered HTML
-        preview.innerHTML = code;
-      }
-    }
-  </script>
-</body>
-</html>
--->
 
 
-<!--
-<!DOCTYPE html>
-<html>
-<head>
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Nihar's Webpage Editor</title>
-<script type="text/javascript">
-var editboxHTML = 
-'<html class="expand close">' +
-'<head>' +
-'<style type="text/css">' +
-'.expand { width: 100%; height: 100%; }' +
-'.close { border: none; font-size: 100%; color: #fff; margin: 0px; padding: 0px; }' +
-'html,body { overflow: hidden; }' +
-'<\/style>' +
-'<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/default.min.css">' +
-'<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"><\/script>' +
-'<script type="text/javascript">' +
-'window.onload = function() { hljs.highlightAll(); };' +
-'<\/script>' +
-'<\/head>' +
-'<body class="expand close" onload="document.f.ta.focus(); document.f.ta.select();">' +
-'<form class="expand close" name="f">' +
-'<pre><code>' +
-'<textarea class="expand close" style="background: #222;" name="ta" wrap="hard" spellcheck="false">' +
-'<\/textarea>' +
-'<\/code></pre>' +
-'<\/form>' +
-'<\/body>' +
-'<\/html>';
-var defaultValue = '';
-var old = '';      
-
-// Initial function to fetch source code of a webpage.
-function init() {
-  var URL = prompt("Enter URL To Fetch HTML Code Of:", "https://");
-  if (URL && URL !== 'https://') {
-    fetch(URL)
-      .then(response => response.text())
-      .then(data => {
-        defaultValue = data;
-        window.editbox.document.write(editboxHTML);
-        window.editbox.document.close();
-        window.editbox.document.f.ta.value = defaultValue;
-        update();
-      })
-      .catch(error => {
-        console.error('Error fetching source code of the URL:', error);
-      });
-  } else {
-        window.editbox.document.write(editboxHTML);
-        window.editbox.document.close();
-        window.editbox.document.f.ta.value = defaultValue;
-        update();
-  }
-}
-
-function update() {
-  var textarea = window.editbox.document.f.ta;
-  var d = dynamicframe.document; 
-  if (old != textarea.value) {
-    old = textarea.value;
-    d.open();
-    d.write('<pre><code>' + old + '</code></pre>');
-    d.close();
-    hljs.highlightAll();  // Trigger syntax highlighting
-  }
-  window.setTimeout(update, 1000);
-}
-</script>
-</head>
-<frameset resizable="yes" cols="60%,*" onload="init();">
-  <frame name="editbox" src="javascript:'';">
-  <frame name="dynamicframe" src="javascript:'';">
-</frameset>
-</html>
--->
 <!--  Includes Iframe option on loading.
 <!DOCTYPE html>
 <html>
