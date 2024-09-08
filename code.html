@@ -1,5 +1,5 @@
 
-<!--  Website Editor With URL-Source-Code Fetching Functionality. 
+<!--  Website Editor With URL-Source-Code Fetching Functionality. -->
 <!DOCTYPE html>
 <html>
 <head>
@@ -70,96 +70,6 @@ function update() {
   <frame name="dynamicframe" src="javascript:'';">
 </frameset>
 </html>
--->
-
-
-<!DOCTYPE html>
-<html>
-<head>
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Nihar's Webpage Editor</title>
-<script type="text/javascript">
-var editboxHTML = 
-'<html class="expand close">' +
-'<head>' +
-'<style type="text/css">' +
-'.expand { width: 100%; height: 100%; }' +
-'.close { border: none; font-size: 100%; color: #fff; margin: 0px; padding: 0px; }' +
-'html,body { overflow: hidden; }' +
-'#editor { background: #222; color: #fff; padding: 10px; overflow: auto; height: 100%; white-space: pre-wrap; }' + // Styling for the editable div
-'#code-display { padding: 10px; }' + // Styling for code display
-'<\/style>' +
-'<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/default.min.css">' + // Include Highlight.js CSS
-'<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"><\/script>' + // Include Highlight.js JS
-'<script>' +
-'window.onload = function() {' +
-'    const editor = document.getElementById("editor");' +
-'    editor.addEventListener("input", function() {' +
-'        let code = editor.innerText;' +
-'        let formattedCode = "<pre><code class=\\"html\\">" + code.replace(/</g, "&lt;").replace(/>/g, "&gt;") + "</code></pre>";' +
-'        document.getElementById("code-display").innerHTML = hljs.highlightAuto(code, [\'html\', \'css\', \'javascript\']).value;' +
-'    });' +
-'    editor.focus();' +
-'}' +
-'<\/script>' +
-'<\/head>' +
-'<body class="expand close">' +
-'<form class="expand close" name="f">' +
-'<div id="editor" contenteditable="true"></div>' + // Use contenteditable div
-'<div id="code-display"></div>' + // Add a div for displaying highlighted code
-'<\/form>' +
-'<\/body>' +
-'<\/html>';
-
-var defaultValue = '';
-var old = '';      
-
-// Initial function to fetch source code of a webpage.
-function init() {
-  var URL = prompt("Enter URL To Fetch HTML Code Of:", "https://");
-  // If URL is neither null nor 'https://', it fetches URL. 'https://' is given because it is the placeholder and might get clicked 'OK'.
-  // If user clicks 'CANCEL', URL value is taken as 'null'.
-  if (URL && URL !== 'https://') {
-    fetch(URL)
-      .then(response => response.text())
-      .then(data => {
-        defaultValue = data;
-        window.editbox.document.write(editboxHTML);
-        window.editbox.document.close();
-        window.editbox.document.getElementById('editor').innerText = defaultValue;
-        update();
-      })
-      .catch(error => {
-        console.error('Error fetching source code of the URL:', error);
-      });
-  } else {
-    window.editbox.document.write(editboxHTML);
-    window.editbox.document.close();
-    window.editbox.document.getElementById('editor').innerText = defaultValue;
-    update();
-  }
-}
-
-function update() {
-  var editor = window.editbox.document.getElementById('editor');
-  var d = dynamicframe.document; 
-  if (old != editor.innerText) {
-    old = editor.innerText;
-    d.open();
-    d.write(old);
-    if (old.replace(/[\r\n]/g,'') == defaultValue.replace(/[\r\n]/g,''))
-      d.close();
-  }
-  window.setTimeout(update, 1000);
-}
-</script>
-</head>
-<frameset resizable="yes" rows="60%,*" onload="init();">
-  <frame name="editbox" src="javascript:'';">
-  <frame name="dynamicframe" src="javascript:'';">
-</frameset>
-</html>
-
 
 
 
