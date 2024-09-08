@@ -85,8 +85,8 @@ var editboxHTML =
 '.expand { width: 100%; height: 100%; }' +
 '.close { border: none; font-size: 100%; color: #fff; margin: 0px; padding: 0px; }' +
 'html,body { overflow: hidden; }' +
-'pre' + // Add styling for <pre> tags
-'code' +          // Add styling for <code> tags
+'pre { margin: 0; padding: 10px; }' + // Add styling for <pre> tags
+'code { display: block; }' +          // Add styling for <code> tags
 '<\/style>' +
 '<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/default.min.css">' + // Include Highlight.js CSS
 '<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"><\/script>' + // Include Highlight.js JS
@@ -94,8 +94,9 @@ var editboxHTML =
 'window.onload = function() {' +
 '    document.f.ta.addEventListener("input", function() {' +
 '        var code = this.value;' +
-'        var highlighted = hljs.highlightAuto(code).value;' +
-'        document.getElementById("code-display").innerHTML = "<pre><code>" + highlighted + "<\/code><\/pre>";' +
+'        var formattedCode = "<pre><code>" + code.replace(/</g, "&lt;").replace(/>/g, "&gt;") + "</code></pre>";' +
+'        var highlighted = hljs.highlightAuto(formattedCode).value;' +
+'        document.getElementById("code-display").innerHTML = highlighted;' +
 '    });' +
 '    document.f.ta.focus();' +
 '    document.f.ta.select();' +
@@ -147,7 +148,6 @@ function update() {
     old = textarea.value;
     d.open();
     d.write(old);
-    
     if (old.replace(/[\r\n]/g,'') == defaultValue.replace(/[\r\n]/g,''))
       d.close();
   }
@@ -160,6 +160,7 @@ function update() {
   <frame name="dynamicframe" src="javascript:'';">
 </frameset>
 </html>
+
 
 <!--
 <!DOCTYPE html>
