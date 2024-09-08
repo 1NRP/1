@@ -1,5 +1,5 @@
 
-<!--  Website Editor With URL-Source-Code Fetching Functionality. -->
+<!--  Website Editor With URL-Source-Code Fetching Functionality. 
 <!DOCTYPE html>
 <html>
 <head>
@@ -70,6 +70,97 @@ function update() {
   <frame name="dynamicframe" src="javascript:'';">
 </frameset>
 </html>
+-->
+
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Nihar's Webpage Editor</title>
+<script type="text/javascript">
+var editboxHTML = 
+'<html class="expand close">' +
+'<head>' +
+'<style type="text/css">' +
+'.expand { width: 100%; height: 100%; }' +
+'.close { border: none; font-size: 100%; color: #fff; margin: 0px; padding: 0px; }' +
+'html,body { overflow: hidden; }' +
+'pre' + // Add styling for <pre> tags
+'code' +          // Add styling for <code> tags
+'<\/style>' +
+'<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/default.min.css">' + // Include Highlight.js CSS
+'<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"><\/script>' + // Include Highlight.js JS
+'<script>' +
+'window.onload = function() {' +
+'    document.f.ta.addEventListener("input", function() {' +
+'        var code = this.value;' +
+'        var highlighted = hljs.highlightAuto(code).value;' +
+'        document.getElementById("code-display").innerHTML = "<pre><code>" + highlighted + "<\/code><\/pre>";' +
+'    });' +
+'    document.f.ta.focus();' +
+'    document.f.ta.select();' +
+'}' +
+'<\/script>' +
+'<\/head>' +
+'<body class="expand close">' +
+'<form class="expand close" name="f">' +
+'<textarea class="expand close" style="background: #222; color: #fff;" name="ta" wrap="hard" spellcheck="false">' +
+'<\/textarea>' +
+'<div id="code-display"></div>' + // Add a div for displaying highlighted code
+'<\/form>' +
+'<\/body>' +
+'<\/html>';
+
+var defaultValue = '';
+var old = '';      
+
+// Initial function to fetch source code of a webpage.
+function init() {
+  var URL = prompt("Enter URL To Fetch HTML Code Of:", "https://");
+  // If URL is neither null nor 'https://', it fetches URL. 'https://' is given because it is the placeholder and might get clicked 'OK'.
+  // If user clicks 'CANCEL', URL value is taken as 'null'.
+  if (URL && URL !== 'https://') {
+    fetch(URL)
+      .then(response => response.text())
+      .then(data => {
+        defaultValue = data;
+        window.editbox.document.write(editboxHTML);
+        window.editbox.document.close();
+        window.editbox.document.f.ta.value = defaultValue;
+        update();
+      })
+      .catch(error => {
+        console.error('Error fetching source code of the URL:', error);
+      });
+  } else {
+    window.editbox.document.write(editboxHTML);
+    window.editbox.document.close();
+    window.editbox.document.f.ta.value = defaultValue;
+    update();
+  }
+}
+
+function update() {
+  var textarea = window.editbox.document.f.ta;
+  var d = dynamicframe.document; 
+  if (old != textarea.value) {
+    old = textarea.value;
+    d.open();
+    d.write(old);
+    
+    if (old.replace(/[\r\n]/g,'') == defaultValue.replace(/[\r\n]/g,''))
+      d.close();
+  }
+  window.setTimeout(update, 1000);
+}
+</script>
+</head>
+<frameset resizable="yes" rows="60%,*" onload="init();">
+  <frame name="editbox" src="javascript:'';">
+  <frame name="dynamicframe" src="javascript:'';">
+</frameset>
+</html>
+
 <!--
 <!DOCTYPE html>
 <html>
@@ -163,6 +254,8 @@ function update() {
 </body>
 </html>
 -->
+
+
 <!--
 <!DOCTYPE html>
 <html>
