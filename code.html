@@ -73,7 +73,6 @@ function update() {
 -->
 
 
-
 <!DOCTYPE html>
 <html>
 <head>
@@ -87,9 +86,8 @@ var editboxHTML =
 '.expand { width: 100%; height: 100%; }' +
 '.close { border: none; font-size: 100%; color: #fff; margin: 0px; padding: 0px; }' +
 'html,body { overflow: hidden; }' +
-'pre { margin: 0; padding: 10px; }' + // Add styling for <pre> tags
-'code { display: block; }' +          // Add styling for <code> tags
-'#editor { background: #222; color: #fff; padding: 10px; overflow: auto; height: 100%; }' + // Styling for the editable div
+'#editor { background: #222; color: #fff; padding: 10px; overflow: auto; height: 100%; white-space: pre-wrap; }' + // Styling for the editable div
+'#code-display { padding: 10px; }' + // Styling for code display
 '<\/style>' +
 '<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/default.min.css">' + // Include Highlight.js CSS
 '<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"><\/script>' + // Include Highlight.js JS
@@ -97,10 +95,9 @@ var editboxHTML =
 'window.onload = function() {' +
 '    const editor = document.getElementById("editor");' +
 '    editor.addEventListener("input", function() {' +
-'        const code = editor.innerText;' +
-'        const formattedCode = "<pre><code>" + code.replace(/</g, "&lt;").replace(/>/g, "&gt;") + "</code></pre>";' +
-'        const highlighted = hljs.highlightAuto(formattedCode).value;' +
-'        document.getElementById("code-display").innerHTML = highlighted;' +
+'        let code = editor.innerText;' +
+'        let formattedCode = "<pre><code class=\\"html\\">" + code.replace(/</g, "&lt;").replace(/>/g, "&gt;") + "</code></pre>";' +
+'        document.getElementById("code-display").innerHTML = hljs.highlightAuto(code, [\'html\', \'css\', \'javascript\']).value;' +
 '    });' +
 '    editor.focus();' +
 '}' +
