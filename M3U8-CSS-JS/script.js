@@ -5332,10 +5332,7 @@ const Ou = (e, t) => {
     Lu = { class: "flex flex-col pb-20" },
     Nu = { class: "sticky z-40 top-0 bg-background/80 backdrop-blur-lg border-b border-border" },
     Du = { class: "container flex h-14 max-w-screen-2xl items-center" },
-    ju = kr(
-        '<div class="mr-4 md:mr-1 md:flex"><a href="#" class="mr-4 md:mr-2 lg:mr-6 flex items-center lg:space-x1 xl:space-x-2"><div class="font-bold text-base dark:text-foreground/60"> M3U8 Downloader </div></a><nav class="flex items-center max-lg:space-x-4 space-x-6 text-sm font-medium"><a href="https://chromewebstore.google.com/detail/m3u8-downloader/iflojgibfliebjepfhbbhaiaagdedoej" target="_blank" class="transition-colors hover:text-foreground/80 text-foreground/60 cursor-pointer">Chrome Extension</a><a href="https://beta.m3u8.dev/" target="_blank" class="transition-colors hover:text-foreground/80 text-foreground/60 cursor-pointer">Beta</a></nav></div>',
-        1,
-    ),
+    ju = kr(),
     $u = { class: "flex flex-1 items-center justify-end space-x-2" },
     Vu = { class: "flex items-center space-x-3" },
     Uu = S("div", { class: "my-6 w-[96%] lg:w-[1160px] bg-background dark:border dark:border-border shadow-lg rounded-l mx-auto box-border p-5 py-6" }, [S("div", { id: "container-6a981008087a0a519c722c43126e8e0b" })], -1),
@@ -5346,8 +5343,8 @@ const Ou = (e, t) => {
         [S("polyline", { points: "4 17 10 11 4 5" }), S("line", { x1: "12", x2: "20", y1: "19", y2: "19" })],
         -1,
     ),
-    zu = S("div", { class: "text-base" }, " Download Video/Audio from YouTube, Twitter/X, Tiktok, Instagram, Loom, Reddit, Twitch and more. ", -1),
-    Hu = S("div", { class: "space-y-1" }, [S("div", null, [S("a", { href: "https://download.m3u8.dev/", target: "_blank", class: "underline" }, "Video Download")])], -1),
+    zu = S(),
+    Hu = S(),
     Gu = { class: "my-6 w-[96%] lg:w-[1160px] bg-background dark:border dark:border-border shadow-lg rounded-l mx-auto box-border p-5 py-6" },
     Wu = S(
         "svg",
@@ -5356,15 +5353,7 @@ const Ou = (e, t) => {
         -1,
     ),
     Ku = S("div", { class: "text-base" }, " If the download fails, you can use the following methods to download the video: ", -1),
-    qu = S(
-        "div",
-        { class: "space-y-1" },
-        [
-            S("div", null, [G("Use the "), S("a", { href: "https://chromewebstore.google.com/detail/m3u8-downloader-pro-hls-d/agiifopjckffghgiggmfnpbdamhpejfi", target: "_blank", class: "underline" }, '"M3U8 Downloader Pro - HLS Downloader"'), G(" to download the video.")]),
-            S("div", null, [G(" Use the "), S("a", { href: "https://record.m3u8.dev/", target: "_blank", class: "underline" }, '"Free Online Screen Recorder"'), G(" to record the video. ")]),
-        ],
-        -1,
-    ),
+    qu = S(),
     Yu = S("br", null, null, -1),
     Xu = { class: "flex flex-col" },
     Ju = { key: 0, class: "flex gap-4 mt-5 items-center justify-center" },
@@ -5541,7 +5530,7 @@ function zd(e, t, n, r, s, o) {
                         { class: "my-6 w-[96%] lg:w-[1160px] mx-auto overflow-hidden" },
                         {
                             default: I(() => [
-                                C(L, null, { default: I(() => [C(m, null, { default: I(() => [G("Download Information:")]), _: 1 }), C(v, null, { default: I(() => [G(" Show the download information. "), id]), _: 1 })]), _: 1 }),
+                                C(L, null, { default: I(() => [C(m, null, { default: I(() => [G("Download Information")]), _: 1 }), C(v, null, { default: I(() => [G(" Show the download information. "), id]), _: 1 })]), _: 1 }),
                                 C(j, null, {
                                     default: I(() => [
                                         s.finishList.length

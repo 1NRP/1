@@ -1,0 +1,153 @@
+
+
+<script>
+	let keepAlive = () => {
+		keepAlive = () => {};
+		var ping =
+			location.href.substr(0, location.href.lastIndexOf("/")) + "/ping";
+		var interval = setInterval(() => {
+			if (serviceWorker) {
+				serviceWorker.postMessage("ping");
+			} else {
+				fetch(ping).then((res) => res.text(!res.ok && clearInterval(interval)));
+			}
+		}, 10000);
+	};
+
+	let scope = ""; 
+	let serviceWorker = null; 
+	let tempMessageStore = [];
+
+	
+	window.onmessage = (evt) => tempMessageStore.push(evt);
+
+	
+	function registerWorker() {
+		
+		return navigator.serviceWorker
+			.getRegistration("./")
+			.then((serviceWorkerRegistration) => {
+				// å¦‚æžœå·²ç»å­˜åœ¨æ³¨å†Œè¿‡çš„ serviceWorkerRegistrationï¼Œåˆ™ç›´æŽ¥è¿”å›žï¼Œå¦åˆ™äº§ç”Ÿæ–°çš„ä¸€ä¸ª
+				return (
+					serviceWorkerRegistration ||
+					navigator.serviceWorker.register("./serviceWorker.js", {
+						scope: "./",
+					})
+				);
+			})
+			.then((serviceWorkerRegistration) => {
+				scope = serviceWorkerRegistration.scope; // ä¿å­˜æ‰€åœ¨åŸŸ
+
+				// å¦‚æžœæ³¨å†Œå·²å°±ç»ªï¼Œåˆ™ç›´æŽ¥èµ‹å€¼å¹¶è¿”å›ž
+				if (serviceWorkerRegistration.active) {
+					serviceWorker = serviceWorkerRegistration.active;
+					return;
+				}
+
+				// å¦‚æžœå¤„äºŽæ³¨å†Œä¸­ï¼Œè¿”å›ž promiseï¼Œå¹¶ç›‘å¬å…¶çŠ¶æ€å˜æ›´ï¼Œç­‰å¾…å…¶å°±ç»ªçŠ¶æ€
+				const swRegTmp =
+					serviceWorkerRegistration.installing ||
+					serviceWorkerRegistration.waiting;
+				return new Promise((resolve) => {
+					const onStatechange = () => {
+						if (swRegTmp.state === "activated") {
+							swRegTmp.removeEventListener("statechange", onStatechange);
+							serviceWorker = serviceWorkerRegistration.active;
+							resolve();
+						}
+					};
+					swRegTmp.addEventListener("statechange", onStatechange);
+				});
+			});
+	}
+
+	// æ¶ˆæ¯ç›‘å¬ï¼Œç›‘å¬ web ä¸»è¿›ç¨‹å‘é€è¿‡æ¥çš„æ¶ˆæ¯ï¼Œå¹¶è¿›è¡Œæ•°æ®ä¸­è½¬ï¼ŒåŠæ•°æ®çš„å¤„ç†ä¸Žè½¬è¯‘
+	function onMessage(event) {
+		let {
+			data, // æ•°æ®
+			ports, // channel æ‰€åœ¨æ¸ é“
+			origin, // æ¶ˆæ¯ä½œç”¨åŸŸ
+		} = event;
+
+		console.log("onMessage", event);
+
+		// æ£€æµ‹æ¶ˆæ¯é€šé“
+		if (!ports || !ports.length) {
+			throw new TypeError("[StreamSaver] You didn't send a messageChannel");
+		}
+
+		// æ£€æµ‹æŽ¥å—çš„æ•°æ®å®žä½“
+		if (typeof data !== "object") {
+			throw new TypeError("[StreamSaver] You didn't send a object");
+		}
+
+		// æ£€æŸ¥ readableStream
+		if (data.readableStream) {
+			console.warn(
+				"[StreamSaver] You should send the readableStream in the messageChannel, not throught mitm/middleWare.html"
+			);
+		}
+
+		// æ£€æŸ¥ pathname
+		if (!data.pathname) {
+			console.warn(
+				"[StreamSaver] Please send `data.pathname` (eg: /pictures/summer.jpg)"
+			);
+			data.pathname = Math.random().toString().slice(-6) + "/" + data.filename;
+		}
+
+		/** @since v2.0.0 */
+		if (!data.headers) {
+			console.warn(
+				"This method is unstable and can run into problems sometimes."
+			);
+		} else {
+			// test if it's correct
+			// should throw a typeError if not
+			new Headers(data.headers);
+		}
+
+		// the default public service worker for StreamSaver is shared among others.
+		// so all download links needs to be prefixed to avoid any other conflict
+		data.origin = origin;
+
+		// if we ever (in some feature versoin of streamsaver) would like to
+		// redirect back to the page of who initiated a http request
+		data.referrer = data.referrer || document.referrer || origin;
+		data.pathname = data.pathname.replace(/^\/+/g, "");
+		let org = origin.replace(/(^\w+:|^)\/\//, "");
+		data.url = new URL(`${scope + org}/${data.pathname}`).toString();
+
+		// æ£€æŸ¥è·¯å¾„æ˜¯å¦åˆæ³•
+		if (!data.url.startsWith(`${scope + org}/`)) {
+			throw new TypeError("[StreamSaver] bad `data.pathname`");
+		}
+		// This sends the message data as well as transferring
+		// messageChannel.port2 to the service worker. The service worker can
+		// then use the transferred port to reply via postMessage(), which
+		// will in turn trigger the onmessage handler on messageChannel.port1.
+		const transferable = data.readableStream
+			? [ports[0], data.readableStream]
+			: [ports[0]];
+
+		if (!(data.readableStream || data.transferringReadable)) {
+			keepAlive();
+		}
+
+		return serviceWorker.postMessage(data, transferable);
+	}
+
+	if (window.opener) {
+		window.opener.postMessage("StreamSaver::loadedPopup", "*");
+	}
+
+
+	if (navigator.serviceWorker) {
+		registerWorker().then(() => {
+			window.onmessage = onMessage;
+			tempMessageStore.forEach(window.onmessage);
+		});
+	} else {
+		keepAlive();
+	}
+</script>
