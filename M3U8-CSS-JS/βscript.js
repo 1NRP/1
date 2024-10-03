@@ -5878,5 +5878,5 @@
     Lu = [{ path: "/", component: Du }],
     Fu = ma({ history: Ic(), routes: Lu });
   const ku = uc(pc);
-  ku.use(Fu).mount("app");
+  ku.use(Fu).mount("#βpageContent");
   
