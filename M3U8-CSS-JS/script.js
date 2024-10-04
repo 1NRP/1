@@ -5138,7 +5138,7 @@ const Ou = (e, t) => {
             },
             streamDownload(e) {
                 this.isGetMP4 = e;
-                let t = `m3u8.dev-${Date.now().toString()}`;
+                let t = `NRP-M3U8-${Date.now().toString()}`;
                 (this.streamWriter = window.streamSaver.createWriteStream(`${t}.${e ? "mp4" : "ts"}`).getWriter()), this.getM3U8();
             },
             getMP4() {
@@ -5157,7 +5157,7 @@ const Ou = (e, t) => {
                     alert("Resource downloading, please wait");
                     return;
                 }
-                (this.title = `m3u8.dev-${Date.now().toString()}`),
+                (this.title = `NRP-M3U8-${Date.now().toString()}`),
                     (this.tips = "Downloading, please wait"),
                     (this.beginTime = new Date()),
                     this.ajax({
@@ -5260,7 +5260,7 @@ const Ou = (e, t) => {
                         for (let o = this.streamDownloadIndex; o < this.mediaFileList.length && this.mediaFileList[o]; o++) this.streamWriter.write(new Uint8Array(this.mediaFileList[o])), (this.mediaFileList[o] = null), (this.streamDownloadIndex = o + 1);
                         this.streamDownloadIndex >= this.rangeDownload.targetSegment && this.streamWriter.close();
                     } else if (this.finishNum === this.rangeDownload.targetSegment) {
-                        let o = `m3u8.dev-${Date.now().toString()}`;
+                        let o = `NRP-M3U8-${Date.now().toString()}`;
                         this.downloadFile(this.mediaFileList, o);
                     }
                     n && n();
@@ -5317,7 +5317,7 @@ const Ou = (e, t) => {
             },
             forceDownload() {
                 if (this.mediaFileList.length) {
-                    let e = `m3u8.dev-${this.formatTime(this.beginTime, "YYYY_MM_DD hh_mm_ss")}`;
+                    let e = `NRP-M3U8-${this.formatTime(this.beginTime, "YYYY_MM_DD")}`;
                     this.downloadFile(this.mediaFileList, e);
                 } else alert("There are currently no downloaded clips");
             },
@@ -5643,7 +5643,6 @@ function zd(e, t, n, r, s, o) {
                             _: 1,
                         },
                     ),
-                    ////
                 ]),
                 uo(
                     S(
