@@ -3,10 +3,10 @@ self.addEventListener('install', (event) => {
         caches.open('M3U8-Cache').then((cache) => {
             return cache.addAll([
                 // Static files to cache.
-                '/M3U8-CSS-JS/style.css',
-                '/M3U8-CSS-JS/mux-mp4.js',
-                '/M3U8-CSS-JS/script.js',
-                //'/M3U8-CSS-JS/aes-decryptor.js',
+                '/1/M3U8/CSS-JS/style.css',
+                '/1/M3U8/CSS-JS/mux-mp4.js',
+                '/1/M3U8/CSS-JS/script.js',
+                //'/1/M3U8-CSS-JS/aes-decryptor.js',
             ]);
         })
     );
