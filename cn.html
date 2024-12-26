@@ -64,7 +64,7 @@ h2 {
     border: 2px solid #444;
     border-radius: 6px;
 }
-#deleteBtn {
+#deleteButton {
     background-color: #802;
     color: #b4b4b4;
     border: none;
@@ -86,7 +86,7 @@ h2 {
     font-weight: 900;
     margin: 2px 2px 0px 15%;
 }
-#getNotes {
+#getButton {
     background-Color: #761;
     color: #b4b4b4;
     border: none;
@@ -175,7 +175,7 @@ const Redis_Key = document.getElementById('Stores').value;
 const fireDB = doc(db, "FireCollection", `${Redis_Key}`);
 const AlertText = document.getElementById('Header').innerText;
 const lines = document.getElementById('textBox').value.trim().split('\n\n\n\n');
-const date  = `[ Date: ${new Date().getDate()}-${new Date().getMonth() + 1}-${new Date().getFullYear} ]`;  // Month is zero-indexed, so add 1. 
+const date  = `[ Date: ${new Date().getDate()}-${new Date().getMonth() + 1}-${new Date().getFullYear()} ]`;  // Month is zero-indexed, so add 1. 
 const saveSentence = date + "\n" + lines[lines.length - 1].trim();
 
 // SaveNote.
