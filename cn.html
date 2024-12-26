@@ -172,7 +172,7 @@ const db = getFirestore(app);
 
 // Define Values.
 const Redis_Key = document.getElementById('Stores').value;
-const fireDB = doc(db, "FireCollection", `${Redis_Key}`);
+const fireDB = doc(db, "Notes_Collection", `${Redis_Key}`);
 const AlertText = document.getElementById('Header').innerText;
 const lines = document.getElementById('textBox').value.trim().split('\n\n\n\n');
 const date  = `[ Date: ${new Date().getDate()}-${new Date().getMonth() + 1}-${new Date().getFullYear()} ]`;  // Month is zero-indexed, so add 1. 
@@ -183,7 +183,7 @@ const saveSentence = date + "\n" + lines[lines.length - 1].trim();
       if (navigator.onLine) {  // Returns 'true' if device is Online.
         try {
             const Redis_Key = document.getElementById('Stores').value;
-            const fireDB = doc(db, "FireCollection", `${Redis_Key}`);
+            const fireDB = doc(db, "Notes_Collection", `${Redis_Key}`);
             const AlertText = document.getElementById('Header').innerText;
             const lines = document.getElementById('textBox').value.trim().split('\n\n\n\n');
             const date  = `[ Date: ${new Date().getDate()}-${new Date().getMonth() + 1}-${new Date().getFullYear} ]`;  // Month is zero-indexed, so add 1. 
@@ -207,7 +207,7 @@ const saveSentence = date + "\n" + lines[lines.length - 1].trim();
       if (navigator.onLine) {  // Returns 'true' if device is Online.
         try {
           const Redis_Key = document.getElementById('Stores').value;
-          const fireDB = doc(db, "FireCollection", `${Redis_Key}`);
+          const fireDB = doc(db, "Notes_Collection", `${Redis_Key}`);
           const AlertText = document.getElementById('Header').innerText;
           const deleteSentence = document.getElementById('deleteBox').value.trim();
           await updateDoc(fireDB, { Notes: arrayRemove(deleteSentence) });
@@ -226,7 +226,7 @@ const saveSentence = date + "\n" + lines[lines.length - 1].trim();
       if (navigator.onLine) {  // Returns 'true' if device is Online.
         try {
           const Redis_Key = document.getElementById('Stores').value;
-          const fireDB = doc(db, "FireCollection", `${Redis_Key}`);
+          const fireDB = doc(db, "Notes_Collection", `${Redis_Key}`);
           const getNote = await getDoc(fireDB);
           if (getNote.exists()) {
             document.getElementById('textBox').value = getNote.data().Notes.reverse().join('\n=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=\n');
