@@ -70,7 +70,6 @@ h2 {
     border: none;
     font-size: 15px;
     border-radius: 50px;
-    cursor: pointer;
     padding: 6px 8px;
     font-weight: 900;
     margin: 0px 2px 4px 0px;
@@ -81,7 +80,6 @@ h2 {
     border: none;
     font-size: 15px;
     border-radius: 50px;
-    cursor: pointer;
     padding: 6px 8px;
     font-weight: 900;
     margin: 2px 2px 0px 15%;
@@ -91,7 +89,6 @@ h2 {
     color: #b4b4b4;
     border: none;
     border-radius: 50px;
-    cursor: pointer;
     font-size: 15px;
     font-weight: 900;
     padding: 6px 8px;
@@ -170,14 +167,6 @@ const firebaseConfig = { apiKey: "AIzaSyAwh2IXpNUCL2JHuTLKfc8FZDDd62g4j74", auth
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-// Define Values.
-const Redis_Key = document.getElementById('Stores').value;
-const fireDB = doc(db, "Notes_Collection", `${Redis_Key}`);
-const AlertText = document.getElementById('Header').innerText;
-const lines = document.getElementById('textBox').value.trim().split('\n\n\n\n');
-const date = `● Date: ${new Date().toLocaleDateString('en-IN')} ●`;
-const saveSentence = date + "\n" + lines[lines.length - 1].trim();
-
 // SaveNote.
     async function saveNote() {
       if (navigator.onLine) {  // Returns 'true' if device is Online.
@@ -186,7 +175,7 @@ const saveSentence = date + "\n" + lines[lines.length - 1].trim();
             const fireDB = doc(db, "Notes_Collection", `${Redis_Key}`);
             const AlertText = document.getElementById('Header').innerText;
             const lines = document.getElementById('textBox').value.trim().split('\n\n\n\n');
-            const date  = `[ Date: ${new Date().getDate()}-${new Date().getMonth() + 1}-${new Date().getFullYear} ]`;  // Month is zero-indexed, so add 1. 
+            const date  = `● Date: ${new Date().toLocaleDateString('en-IN')} ●`;
             const saveSentence = date + "\n" + lines[lines.length - 1].trim();
             await updateDoc(fireDB, { Notes: arrayUnion(saveSentence) });
             console.log("Note saved to Firestore:", saveSentence);
