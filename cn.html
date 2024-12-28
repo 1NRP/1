@@ -166,7 +166,7 @@ document.getElementById('logout').onclick = logout;
 
 // Import necessary functions from Firebase SDKs.
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-app.js";
-import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-auth.js";
+import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-auth.js";
 import { getFirestore, doc, getDoc, arrayUnion, arrayRemove, updateDoc, enableIndexedDbPersistence, getDocFromCache } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-firestore.js";
 
 const firebaseConfig = { apiKey: "AIzaSyAwh2IXpNUCL2JHuTLKfc8FZDDd62g4j74", authDomain: "nrp888.firebaseapp.com", projectId: "nrp888", storageBucket: "nrp888.firebasestorage.app", messagingSenderId: "876054763342", appId: "1:876054763342:web:fddead6f7db3f8ebcff01f" };
@@ -183,7 +183,7 @@ function login() {
     .then((userCredential) => {
     // Signed in.
       const user = userCredential.user;
-      showAlert({ BgColor: '1bd13d', Text: '✔ Logged In'});
+      showAlert({ BgColor: '#1bd13d', Text: '✔ Logged In'});
     })
     .catch((error) => {
       alert(error.message);
@@ -198,11 +198,29 @@ function login() {
 }
 }
 
+// Check login status.
+let loggedIn = false; // Global Login-Status variable.
+function loginStat() {
+  const auth = getAuth();
+  onAuthStateChanged(auth, (user) => {
+    if (user) {
+      const statBtn = document.getElementById('loginStatus');
+      const userId = user.uid;
+      loggedIn = true;
+      statBtn.style.backgroundColor = '#0d0';
+    } else {
+      // User is signed out.
+      statBtn.style.backgroundColor = '#d00';
+    }
+  });
+}
+window.onload = loginStat();
+  
 // Logout.
 function logout() {
   const auth = getAuth();
   signOut(auth).then(() => {
-    showAlert({ BgColor: 'f2074e', Text: '✖ Logged Out'});
+    showAlert({ BgColor: '#f2074e', Text: '✖ Logged Out'});
   }).catch((error) => {
     showAlert({ BgColor: '#e8af05', Text: '⚠ Error Logging Out'});
   });
@@ -210,7 +228,7 @@ function logout() {
 
 // SaveNote.
     async function saveNote() {
-      if (navigator.onLine) {  // Returns 'true' if device is Online.
+      if (loggedIn) {
         try {
             const Redis_Key = document.getElementById('Stores').value;
             const fireDB = doc(db, "Notes_Collection", `${Redis_Key}`);
@@ -231,14 +249,13 @@ function logout() {
           console.error("Error saving note:", error);
         }
       } else {
-        console.log("Device offline. Note not saved.");
-        // You could add a local caching mechanism here
+        login();
       }
     }
 
 // DeleteNote.
    async function deleteNote() {
-      if (navigator.onLine) {  // Returns 'true' if device is Online.
+      if (loggedIn) {
         try {
           const Redis_Key = document.getElementById('Stores').value;
           const fireDB = doc(db, "Notes_Collection", `${Redis_Key}`);
@@ -252,14 +269,13 @@ function logout() {
           console.error("Error deleting note:", error);
         }
       } else {
-        console.log("Device offline. Note not deleted.");
-        // You could add a local caching mechanism here
+          login();
       }
     }
 
 // GetNote.
     async function getNotes() {
-      if (navigator.onLine) {  // Returns 'true' if device is Online.
+      if (loggedIn) {
         try {
           const Redis_Key = document.getElementById('Stores').value;
           const fireDB = doc(db, "Notes_Collection", `${Redis_Key}`);
@@ -273,15 +289,9 @@ function logout() {
         } catch (error) {
             console.log("Error: ", error);
         }
-      } else {  // Falls back to offline cache of Firestore.
-          try {
-            const cacheNote = await getDocFromCache(fireDB);
-            // Document was found in the cache. If no cached document exists,
-            // an error will be returned to the 'catch' block below.
-            document.getElementById('textBox').value = getNote.data().Notes.join('\n=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=\n');
-            console.log("Cached document data:", cacheNote.data());
-          } catch (error) {
-            console.log("Error: ", error);
+      } else {
+          // Trigger Login Function.
+          login();
           }
       }
     }
