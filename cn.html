@@ -102,9 +102,9 @@ h2 {
     padding: 2px 7px 5px 7px;
     margin: 0px 0px 0px 15%;
 }
-#clearBtn:hover,
-#getNotes:hover,
-#deleteBtn:hover,
+#clearButton:hover,
+#getButton:hover,
+#deleteButton:hover,
 #saveButton:hover {
     background-color: #444;
 }
@@ -146,7 +146,7 @@ h2 {
 </div>
     <textarea id="textBox" spellcheck="false" autocomplete="off" translate="no"></textarea> 
     <button id="deleteButton" onclick="deleteNote()">DELETE</button>
-    <button id="clearBtn" onclick="document.getElementById('textBox').value=''">✖</button>
+    <button id="clearButton" onclick="document.getElementById('textBox').value=''">✖</button>
     <button id="saveButton" onclick="saveNotes()">SAVE</button>
     <button id="getButton" onclick="getNote()">VIEW</button>
     <textarea id="deleteBox" spellcheck="false" autocomplete="off" translate="no"></textarea>
@@ -176,7 +176,11 @@ const db = getFirestore(app);
             const AlertText = document.getElementById('Header').innerText;
             const lines = document.getElementById('textBox').value.trim().split('\n\n\n\n');
             const date  = `● Date: ${new Date().toLocaleDateString('en-IN')} ●`;
-            const saveSentence = date + "\n" + lines[lines.length - 1].trim();
+            const saveSentence = date + "\n" + lines[lines.length - 1];
+            if (lines && saveSentence) {
+              await updateDoc(fireDB, { Notes: arrayUnion(saveSentence) });
+            }
+            console.log("Note saved to Firestore:", saveSentence)
             await updateDoc(fireDB, { Notes: arrayUnion(saveSentence) });
             console.log("Note saved to Firestore:", saveSentence);
             //showAlert({ BgColor: '#1bd13d', Text: `✔ ${AlertText}`});
@@ -199,8 +203,10 @@ const db = getFirestore(app);
           const fireDB = doc(db, "Notes_Collection", `${Redis_Key}`);
           const AlertText = document.getElementById('Header').innerText;
           const deleteSentence = document.getElementById('deleteBox').value.trim();
-          await updateDoc(fireDB, { Notes: arrayRemove(deleteSentence) });
-          console.log("Note deleted from Firestore:", deleteSentence);
+          if (deleteSentence) {
+            await updateDoc(fireDB, { Notes: arrayRemove(deleteSentence) });
+          }
+          console.log("Note deleted from Firestore.");
         } catch (error) {
           console.error("Error deleting note:", error);
         }
