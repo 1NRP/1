@@ -144,6 +144,10 @@ h2 {
         <option value="Quotes" data-Name="Quotes" data-Colour="#1d423a">Quotes</option>
     </select>
 </div>
+    <div id="pop-up">
+      <button id="login" style="background-color: #2072b1; padding: 6px;" onclick="login()">LOG IN</button>
+      <button id="logout" style="background-color: #c02020; padding: 6px;" onclick="logout()">LOG OUT"></button>
+    </div>
     <textarea id="textBox" spellcheck="false" autocomplete="off" translate="no"></textarea> 
     <button id="deleteButton" onclick="deleteNote()">DELETE</button>
     <button id="clearButton" onclick="document.getElementById('textBox').value=''">✖</button>
@@ -157,15 +161,57 @@ document.getElementById('saveButton').onclick = saveNote;
 document.getElementById('getButton').onclick = getNotes;
 document.getElementById('deleteButton').onclick = deleteNote;
 document.getElementById('textBox').onclick = pasteLineText;
+document.getElementById('login').onclick = login;
+document.getElementById('logout').onclick = logout;
 
 // Import necessary functions from Firebase SDKs.
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-app.js";
-import { getAuth } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-auth.js";
-import { getFirestore, doc, getDoc, arrayUnion, arrayRemove, updateDoc, getDocFromCache } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-firestore.js";
+import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-auth.js";
+import { getFirestore, doc, getDoc, arrayUnion, arrayRemove, updateDoc, enableIndexedDbPersistence, getDocFromCache } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-firestore.js";
 
 const firebaseConfig = { apiKey: "AIzaSyAwh2IXpNUCL2JHuTLKfc8FZDDd62g4j74", authDomain: "nrp888.firebaseapp.com", projectId: "nrp888", storageBucket: "nrp888.firebasestorage.app", messagingSenderId: "876054763342", appId: "1:876054763342:web:fddead6f7db3f8ebcff01f" };
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
+
+// Enable Offline Persistence if Trusted Device while logging in.
+function login() {
+  const auth = getAuth();
+  const email = prompt('Enter Email:');
+  const password = prompt('Enter Password:');
+  const offlineSupport = prompt('Is it a Trusted Device ? Click "OK" to enable offline persistence and "CANCEL" to disable.', "Yes");
+  signInWithEmailAndPassword(auth, email, password)
+    .then((userCredential) => {
+    // Signed in.
+      const user = userCredential.user;
+      showAlert({ BgColor: '1bd13d', Text: '✔ Logged In'});
+    })
+    .catch((error) => {
+      alert(error.message);
+    });
+  if (offlineSupport === "Yes") {
+    initializeFirestore(app, { localCache: persistentLocalCache({ tabManager: persistentSingleTabManager() })
+  }).catch((err) => {
+    if (err.code === 'unimplemented') {
+      alert('The current browser does not support all of the features required to enable persistence');
+    }
+  });
+}
+}
+
+// Show Login/Logout Pop-up.
+function showLogin() {
+
+}
+// Logout.
+function logout() {
+  const auth = getAuth();
+  document.getElementById('Header').style.color = '#fff';
+  signOut(auth).then(() => {
+    showAlert({ BgColor: 'f2074e', Text: '✖ Logged Out'});
+  }).catch((error) => {
+    showAlert({ BgColor: '#e8af05', Text: '⚠ Error Logging Out'});
+  });
+}
 
 // SaveNote.
     async function saveNote() {
