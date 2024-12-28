@@ -94,7 +94,7 @@ h2 {
     padding: 6px 8px;
     margin: 2px 2px 0px 15px;
 }
-#clearBtn {
+#clearButton {
     border: none;
     color: #b4b4b4;
     border-radius: 50px;
@@ -308,9 +308,9 @@ document.addEventListener("keydown", function(event) {
     }
     if (arrowRightPressed) {
         if (event.key === "ArrowUp") {
-            saveNotes();
+            saveNote();
         } else if (event.key === "ArrowDown") {
-            getNote();
+            getNotes();
         } else if (event.key === "End") {
             deleteNote();
         }
