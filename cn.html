@@ -121,6 +121,27 @@ h2 {
     animation-name: Alert;
     animation-duration: 1s;
 }
+
+.form-container { 
+  position: absolute;
+  top: 10dvh;
+  top: 20vh; left: 10vw ;
+  background-color: white; 
+  padding: 20px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); 
+  border-radius: 8px; width: 300px; } 
+.form-container h2 { text-align: center; margin-bottom: 20px; } 
+.form-container label { display: block; margin-bottom: 8px; } 
+.form-container input { 
+  width: 90%; 
+  padding: 10px; margin-bottom: 10px; 
+  border: 1px solid #ddd; border-radius: 4px; } 
+.form-container button { 
+  width: 95%; padding: 10px; 
+  background-color: #4CAF50; color: white; 
+  border: none; border-radius: 4px; 
+  cursor: pointer; } 
+.form-container button:hover { background-color: #294e2b; }
+
  /* Alert Animation */
 @keyframes Alert {
     from {font-size: 10px; top: 5dvh}
@@ -131,7 +152,21 @@ h2 {
 <!--  * Keyboard Shortcuts: Fetch Notes: "ArrowRight + ArrowDown", Save Notes: "ArrowRight + ArrowUp", Delete Notes: "ArrowRight + End"  -->
 <div id="TopBar">
     <h2 id="Header">Nihar's Cloud Notes</h2>
-    <div id='loginStatus' style="padding:1px;height:20px;width:20px; position: absolute; background-color:#d00; border-radius:50px;margin:-1vw 0px 0px 60vw"></div>"
+    <div id='loginStatus' style="padding:1px;height:20px;width:20px; position: absolute; border-radius:50px;margin:-1vw 0px 0px 60vw"></div>"
+    
+  <div class="form-container">
+    <h2>Login</h2> 
+    <form id="loginForm"> 
+        <input type="text" placeholder="Enter Email" id="userId" required> 
+        <input type="password" placeholder="Enter Password" id="password" required> 
+        <button type="submit">Submit</button>
+      <br>
+      <br>
+      <label for="check">Is It A Trusted Device</label>
+      <input type="checkbox" name="check" id="device-type" value="Trusted Device"></input>
+  </form> 
+</div>
+
     <select id="Stores">
         <option value="Miscellaneous" data-Name="Nihar's Cloud Notes" data-Colour="#111136">Miscellaneous</option>
         <option value="Trading_And_Investing" data-Name="Trading & Investing" data-Colour="#4e3144">Trading & Investing</option>
@@ -174,12 +209,30 @@ const firebaseConfig = { apiKey: "AIzaSyAwh2IXpNUCL2JHuTLKfc8FZDDd62g4j74", auth
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
+
+// Login form.
+function showLogin() {
+  if (loggedIn === false) {
+    const form = document.getElementById('loginForm');
+    form.style.display = 'block';
+    form.addEventListener('submit', function(event) { 
+      const userId = document.getElementById('userId').value; 
+      const userPassword = document.getElementById('password').value;
+      let offlineSupport;
+      if (document.getElementById('device-type').checked) {
+         offlineSupport = true; 
+      }
+        login(userId, userPassword, offlineSupport); 
+        alert('Submission canceled!');
+      });
+  } else {
+    alert('Already Logged In!');
+  }
+}
+
 // Enable Offline Persistence if Trusted Device while logging in.
-function login() {
+function login(email, password, offlineSupport) {
   const auth = getAuth();
-  const email = prompt('Enter Email:');
-  const password = prompt('Enter Password:');
-  const offlineSupport = prompt('Is it a Trusted Device ? Click "OK" to enable offline persistence and "CANCEL" to disable.', "Yes");
   signInWithEmailAndPassword(auth, email, password)
     .then((userCredential) => {
     // Signed in.
@@ -189,7 +242,7 @@ function login() {
     .catch((error) => {
       alert(error.message);
     });
-  if (offlineSupport === "Yes") {
+  if (offlineSupport) {
     initializeFirestore(app, { localCache: persistentLocalCache({ tabManager: persistentSingleTabManager() })
   }).catch((err) => {
     if (err.code === 'unimplemented') {
@@ -215,7 +268,7 @@ function loginStat() {
     }
   });
 }
-window.onload = loginStat();
+window.onload = loginStat;
   
 // Logout.
 function logout() {
