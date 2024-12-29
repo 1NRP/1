@@ -131,6 +131,7 @@ h2 {
 <!--  * Keyboard Shortcuts: Fetch Notes: "ArrowRight + ArrowDown", Save Notes: "ArrowRight + ArrowUp", Delete Notes: "ArrowRight + End"  -->
 <div id="TopBar">
     <h2 id="Header">Nihar's Cloud Notes</h2>
+    <div id='loginStatus' style="padding:1px;height:20px;width:20px; position: absolute; background-color:#d00; border-radius:50px;margin:-1vw 0px 0px 60vw"></div>"
     <select id="Stores">
         <option value="Miscellaneous" data-Name="Nihar's Cloud Notes" data-Colour="#111136">Miscellaneous</option>
         <option value="Trading_And_Investing" data-Name="Trading & Investing" data-Colour="#4e3144">Trading & Investing</option>
@@ -151,8 +152,8 @@ h2 {
     <textarea id="textBox" spellcheck="false" autocomplete="off" translate="no"></textarea> 
     <button id="deleteButton" onclick="deleteNote()">DELETE</button>
     <button id="clearButton" onclick="document.getElementById('textBox').value=''" ondblclick="document.getElementById('pop-up').style.display = (document.getElementById('pop-up').style.display === 'none' ? 'block' : 'none');">✖</button>
-    <button id="saveButton" onclick="saveNotes()">SAVE</button>
-    <button id="getButton" onclick="getNote()">VIEW</button>
+    <button id="saveButton" onclick="saveNote()">SAVE</button>
+    <button id="getButton" onclick="getNotes()">VIEW</button>
     <textarea id="deleteBox" spellcheck="false" autocomplete="off" translate="no"></textarea>
 
 <script type="module">
@@ -294,7 +295,7 @@ function logout() {
           login();
           }
       }
-    }
+    
 
 // Function to paste specific note into deleteBox. 
 function pasteLineText(event) {
