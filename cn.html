@@ -224,21 +224,25 @@ const db = getFirestore(app);
 
 // Login form.
 function showLogin() {
-  if (loggedIn === false) {
-    const form = document.getElementById('loginForm');
+  const form = document.getElementById('loginForm');
+  const logoutBtn = document.getElementById('logout');
+  if (!loggedIn) {
     form.style.display = 'block';
-    form.addEventListener('submit', function(event) {
-      event.preventDefault();
-      const userId = document.getElementById('userId').value; 
-      const userPassword = document.getElementById('password').value;
-      let offlineSupport;
-      if (document.getElementById('device-type').checked) {
-         offlineSupport = true; 
-      }
-      login(userId, userPassword, offlineSupport);
+    // Prevent adding multiple listeners to the form.
+    if (!form.hasListener) {
+      form.addEventListener('submit', function(event) {
+        event.preventDefault();
+        const userId = document.getElementById('userId').value;
+        const userPassword = document.getElementById('password').value;
+        let offlineSupport = document.getElementById('device-type').checked;
+        login(userId, userPassword, offlineSupport);
       });
+      // Mark form as having an event listener.
+      form.hasListener = true;
+    }
   } else {
-    document.getElementById('logout').style.display = (document.getElementById('logout').style.display === 'none' ? 'block' : 'none');
+    // Toggle visibility of logout button.
+    logoutBtn.style.display = (logoutBtn.style.display === 'none' ? 'block' : 'none');
   }
 }
 
@@ -271,11 +275,11 @@ function loginStat() {
   const auth = getAuth();
   onAuthStateChanged(auth, (user) => {
     if (user) {
-      const userId = user.uid;
       loggedIn = true;
       statBtn.style.backgroundColor = '#0d0';
     } else {
       // User is signed out.
+      loggedIn = false;
       statBtn.style.backgroundColor = '#d00';
     }
   });
