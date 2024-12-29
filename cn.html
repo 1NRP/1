@@ -251,21 +251,22 @@ function login(email, password, offlineSupport) {
   const auth = getAuth();
   signInWithEmailAndPassword(auth, email, password)
     .then((userCredential) => {
-    // Signed in.
+      // Signed in.
       const user = userCredential.user;
-      showAlert({ BgColor: '#1bd13d', Text: '✔ Logged In'});
+      showAlert({ BgColor: '#1bd13d', Text: '✔ Logged In' });
       document.getElementById('form-container').style.display = 'none';
+    })
     .catch((error) => {
       alert(error.message);
     });
   if (offlineSupport) {
     initializeFirestore(app, { localCache: persistentLocalCache({ tabManager: persistentSingleTabManager() })
-  }).catch((err) => {
-    if (err.code === 'unimplemented') {
-      alert('The current browser does not support all of the features required to enable persistence');
-    }
-  });
-}
+    }).catch((err) => {
+      if (err.code === 'unimplemented') {
+        alert('The current browser does not support all of the features required to enable persistence');
+      }
+    });
+  }
 }
 
 // Check login status.
