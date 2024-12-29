@@ -199,7 +199,7 @@ a4 { color: #d88; font-weight: 600 }
     <button id="logout" style="background-color: #d00; position: absolute; top: 40vh; left: 40vw; font-weight: 600; padding: 6px; display: none; border: 2px dashed #3c3f3d; border-radius: 6px;" onclick="logout()">LOG OUT</button>
     <textarea id="textBox" spellcheck="false" autocomplete="off" translate="no"></textarea> 
     <button id="deleteButton" onclick="deleteNote()">DELETE</button>
-    <button id="clearButton" onclick="document.getElementById('textBox').value=''" ondblclick="document.getElementById('pop-up').style.display = (document.getElementById('pop-up').style.display === 'none' ? 'block' : 'none');">✖</button>
+    <button id="clearButton" onclick="document.getElementById('textBox').value=''">✖</button>
     <button id="saveButton" onclick="saveNote()">SAVE</button>
     <button id="getButton" onclick="getNotes()">VIEW</button>
     <textarea id="deleteBox" spellcheck="false" autocomplete="off" translate="no"></textarea>
@@ -224,7 +224,7 @@ const db = getFirestore(app);
 
 // Login form.
 function showLogin() {
-  const form = document.getElementById('loginForm');
+  const form = document.getElementById('form-container');
   const logoutBtn = document.getElementById('logout');
   if (!loggedIn) {
     form.style.display = 'block';
