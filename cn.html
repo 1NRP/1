@@ -13,7 +13,7 @@ body {
     background-color: #000;
 }
 input:focus,
-textarea:focus,
+textarea,
 select:focus {
   outline:0
 }
@@ -122,44 +122,44 @@ h2 {
     animation-duration: 1s;
 }
 #form-container { 
-  position: absolute;
-  top: 40vh;
-  left: 10vw;
-  display: none;
-  background-color: #456b; 
-  padding: 20px;
-  border-radius: 8px;
-  width: 70vw;
-  animation-name: Login;
-  animation-duration: 1s;
-  }    
+    position: absolute;
+    top: 40vh;
+    left: 10vw;
+    display: none;
+    background-color: #456b; 
+    padding: 20px;
+    border-radius: 8px;
+    width: 70vw;
+    animation-name: Login;
+    animation-duration: 1s;
+}    
 #form-container input { outline: 0 }
 #form-container h2 { 
-  text-align: center;
-  color: #d88;
-  margin: -15px 0px 10px 0px;
+    text-align: center;
+    color: #d88;
+    margin: -15px 0px 10px 0px;
 }
 a4 { color: #d88; font-weight: 600 }
 #userId, #password {
-  width: 100%; 
-  padding: 10px;
-  background-color: #222; 
-  margin-bottom: 10px; 
-  border: 2px dashed #888; 
-  border-radius: 6px;
+    width: 100%; 
+    padding: 10px;
+    background-color: #222; 
+    margin-bottom: 10px; 
+    border: 2px dashed #888; 
+    border-radius: 6px;
 }
 ::placeholder { font-weight: 600 }
 #form-container button { 
-  width: 100%; 
-  padding: 10px;
-  border: 2px solid #888;
-  font-weight: 600;
-  background-color: #4CAF50; 
-  color: #bbb; 
-  border-radius: 4px; 
+    width: 100%; 
+    padding: 10px;
+    border: 2px solid #888;
+    font-weight: 600;
+    background-color: #4CAF50; 
+    color: #bbb; 
+    border-radius: 4px; 
 }
 #form-container button:hover { 
-  background-color: #4caf50bb; }
+    background-color: #4caf50bb; }
 /* Animations */
 @keyframes Alert {
     from {font-size: 10px; top: 5dvh}
@@ -172,7 +172,7 @@ a4 { color: #d88; font-weight: 600 }
 <!--  * Keyboard Shortcuts: Fetch Notes: "ArrowRight + ArrowDown", Save Notes: "ArrowRight + ArrowUp", Delete Notes: "ArrowRight + End"  -->
 <div id="TopBar">
     <h2 id="Header">Nihar's Cloud Notes</h2>
-    <div id='loginStatus' style="padding:1px;height:20px;width:20px; background-color: #d00; position: absolute; border-radius:50px;margin:-1vw 0px 0px 60vw"></div>
+    <div id='loginStatus' style="padding: 1px; height: 20px; width: 20px; position: absolute; border-radius: 50px; margin: -1vw 0px 0px 60vw" onclick="showLogin()"></div>
     <div id="form-container">
         <h2>Login</h2> 
         <form id="loginForm"> 
@@ -211,6 +211,7 @@ document.getElementById('getButton').onclick = getNotes;
 document.getElementById('deleteButton').onclick = deleteNote;
 document.getElementById('textBox').onclick = pasteLineText;
 document.getElementById('logout').onclick = logout;
+document.getElementById('loginStatus').onclick = showLogin;
 
 // Import necessary functions from Firebase SDKs.
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-app.js";
@@ -266,10 +267,10 @@ function login(email, password, offlineSupport) {
 // Check login status.
 let loggedIn = false; // Global Login-Status variable.
 function loginStat() {
+  const statBtn = document.getElementById('loginStatus');
   const auth = getAuth();
   onAuthStateChanged(auth, (user) => {
     if (user) {
-      const statBtn = document.getElementById('loginStatus');
       const userId = user.uid;
       loggedIn = true;
       statBtn.style.backgroundColor = '#0d0';
