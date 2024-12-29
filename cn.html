@@ -216,7 +216,7 @@ document.getElementById('loginStatus').onclick = showLogin;
 // Import necessary functions from Firebase SDKs.
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-app.js";
 import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-auth.js";
-import { getFirestore, doc, getDoc, arrayUnion, arrayRemove, updateDoc, enableIndexedDbPersistence, getDocFromCache } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-firestore.js";
+import { getFirestore, doc, getDoc, arrayUnion, arrayRemove, updateDoc, initializeFirestore, persistentLocalCache, persistentSingleTabManager } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-firestore.js";
 
 const firebaseConfig = { apiKey: "AIzaSyAwh2IXpNUCL2JHuTLKfc8FZDDd62g4j74", authDomain: "nrp888.firebaseapp.com", projectId: "nrp888", storageBucket: "nrp888.firebasestorage.app", messagingSenderId: "876054763342", appId: "1:876054763342:web:fddead6f7db3f8ebcff01f" };
 const app = initializeApp(firebaseConfig);
@@ -254,7 +254,7 @@ function login(email, password, offlineSupport) {
     // Signed in.
       const user = userCredential.user;
       showAlert({ BgColor: '#1bd13d', Text: '✔ Logged In'});
-    })
+      document.getElementById('form-container').style.display = 'none';
     .catch((error) => {
       alert(error.message);
     });
