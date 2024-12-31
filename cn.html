@@ -122,11 +122,12 @@ h2 {
     animation-duration: 1s;
 }
 #form-container { 
-    position: absolute;
+    position: fixed;
     top: 30vh;
-    left: 10vw;
+    left: 7vw;
     display: none;
-    background-color: #456b; 
+    background-color: #456;
+    box-shadow: 10px 10px 8px #789;
     padding: 20px;
     border-radius: 8px;
     width: 70vw;
@@ -150,13 +151,13 @@ a4 { color: #d88; font-weight: 600 }
 }
 ::placeholder { font-weight: 600 }
 #form-container button { 
-    width: 92%; 
+    width: 99%; 
     padding: 10px;
-    border: 2px solid #888;
+    border: 2px solid #ddd;
     font-weight: 600;
     background-color: #4CAF50; 
-    color: #bbb; 
-    border-radius: 4px; 
+    color: #ddd; 
+    border-radius: 4px;
 }
 #form-container button:hover { 
     background-color: #4caf50bb; }
@@ -172,7 +173,7 @@ a4 { color: #d88; font-weight: 600 }
 <!--  * Keyboard Shortcuts: Fetch Notes: "ArrowRight + ArrowDown", Save Notes: "ArrowRight + ArrowUp", Delete Notes: "ArrowRight + End"  -->
 <div id="TopBar">
     <h2 id="Header">Nihar's Cloud Notes</h2>
-    <div id='loginStatus' style="padding: 1px; height: 20px; width: 20px; position: absolute; border-radius: 50px; margin: 0vh 0px 0px 60vw" onclick="showLogin()"></div>
+    <div id='loginStatus' style="padding: 1px; height: 20px; width: 20px; position: absolute; border-radius: 50px; margin: -1vh 0px 0px 60vw" onclick="showLogin()"></div>
     <div id="form-container">
         <h2>Login</h2> 
         <form id="loginForm"> 
@@ -196,7 +197,7 @@ a4 { color: #d88; font-weight: 600 }
         <option value="Quotes" data-Name="Quotes" data-Colour="#1d423a">Quotes</option>
     </select>
 </div>
-    <button id="logout" style="background-color: #d41818; position: absolute; top: 40vh; left: 40vw; font-weight: 600; padding: 20px; display: none; border-radius: 50px; box-shadow: 8px 8px 8px #c44b4b; border: none; border-radius: 6px;" onclick="logout()">LOG OUT</button>
+    <button id="logout" style="background-color: #d41818; position: fixed; top: 40vh; left: 32vw; font-weight: 600; font-size: 20px; padding: 20px; display: none; border-radius: 50px; box-shadow: 8px 8px 6px #c44b4b; border: none; border-radius: 6px;" onclick="logout()">LOG OUT</button>
     <textarea id="textBox" spellcheck="false" autocomplete="off" translate="no"></textarea> 
     <button id="deleteButton" onclick="deleteNote()">DELETE</button>
     <button id="clearButton" onclick="document.getElementById('textBox').value=''">✖</button>
@@ -224,9 +225,9 @@ const app = initializeApp(firebaseConfig);
 // Login form.
 function showLogin() {
   const form = document.getElementById('form-container');
-  form.style.display = form.style.display === 'none' ? 'none' : 'block';
   const logoutBtn = document.getElementById('logout');
   if (!loggedIn) {
+    form.style.display = (form.style.display === 'none' ? 'block' : 'none');
     // Prevent adding multiple listeners to the form.
     if (!form.hasListener) {
       form.addEventListener('submit', function(event) {
@@ -261,8 +262,10 @@ function login(email, password, offlineSupport) {
     });
   if (offlineSupport) {
     db = initializeFirestore(app, { localCache: persistentLocalCache({ tabManager: persistentMultipleTabManager() }) })
-  } else { 
+    activateOnSnapshot();
+  } else {
     db = getFirestore(app)
+    activateOnSnapshot();
     .catch((error) => {
       alert('Failed to Log In.');
     });
@@ -318,7 +321,7 @@ function logout() {
     .catch((error) => {
       showAlert({ BgColor: '#e8af05', Text: '⚠ Error Clearing IndexedDB'});
     });
-  }, 500);
+  }, 1500);
   } else {
     showAlert({ BgColor: '#848', Text: 'Already Logged Out'});
   }
