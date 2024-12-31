@@ -123,7 +123,7 @@ h2 {
 }
 #form-container { 
     position: absolute;
-    top: 40vh;
+    top: 30vh;
     left: 10vw;
     display: none;
     background-color: #456b; 
@@ -131,7 +131,7 @@ h2 {
     border-radius: 8px;
     width: 70vw;
     animation-name: Login;
-    animation-duration: 1s;
+    animation-duration: 0.5s;
 }    
 #form-container input { outline: 0 }
 #form-container h2 { 
@@ -141,7 +141,7 @@ h2 {
 }
 a4 { color: #d88; font-weight: 600 }
 #userId, #password {
-    width: 100%; 
+    width: 90%; 
     padding: 10px;
     background-color: #222; 
     margin-bottom: 10px; 
@@ -150,7 +150,7 @@ a4 { color: #d88; font-weight: 600 }
 }
 ::placeholder { font-weight: 600 }
 #form-container button { 
-    width: 100%; 
+    width: 92%; 
     padding: 10px;
     border: 2px solid #888;
     font-weight: 600;
@@ -165,14 +165,14 @@ a4 { color: #d88; font-weight: 600 }
     from {font-size: 10px; top: 5dvh}
     to {font-size: 25px; top: 10dvh}
 }
-@keyframes Login { from {top: 10vh} to {top: 40vh} }
+@keyframes Login { from {opacity: 0; top: 0vh} to {opacity: 1; top: 30vh} }
 </style>
 
 <body>
 <!--  * Keyboard Shortcuts: Fetch Notes: "ArrowRight + ArrowDown", Save Notes: "ArrowRight + ArrowUp", Delete Notes: "ArrowRight + End"  -->
 <div id="TopBar">
     <h2 id="Header">Nihar's Cloud Notes</h2>
-    <div id='loginStatus' style="padding: 1px; height: 20px; width: 20px; position: absolute; border-radius: 50px; margin: -1vw 0px 0px 60vw" onclick="showLogin()"></div>
+    <div id='loginStatus' style="padding: 1px; height: 20px; width: 20px; position: absolute; border-radius: 50px; margin: 0vh 0px 0px 60vw" onclick="showLogin()"></div>
     <div id="form-container">
         <h2>Login</h2> 
         <form id="loginForm"> 
@@ -196,7 +196,7 @@ a4 { color: #d88; font-weight: 600 }
         <option value="Quotes" data-Name="Quotes" data-Colour="#1d423a">Quotes</option>
     </select>
 </div>
-    <button id="logout" style="background-color: #d00; position: absolute; top: 40vh; left: 40vw; font-weight: 600; padding: 6px; display: none; border: 2px dashed #3c3f3d; border-radius: 6px;" onclick="logout()">LOG OUT</button>
+    <button id="logout" style="background-color: #d00; position: absolute; top: 40vh; left: 40vw; font-weight: 600; padding: 20px; display: none; border-radius: 50px; box-shadow: #c44b4b; border: none; border-radius: 6px;" onclick="logout()">LOG OUT</button>
     <textarea id="textBox" spellcheck="false" autocomplete="off" translate="no"></textarea> 
     <button id="deleteButton" onclick="deleteNote()">DELETE</button>
     <button id="clearButton" onclick="document.getElementById('textBox').value=''">✖</button>
@@ -216,11 +216,10 @@ document.getElementById('loginStatus').onclick = showLogin;
 // Import necessary functions from Firebase SDKs.
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-app.js";
 import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-auth.js";
-import { getFirestore, doc, getDoc, arrayUnion, arrayRemove, updateDoc, initializeFirestore, persistentLocalCache, persistentSingleTabManager } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-firestore.js";
+import { getFirestore, collection as myCollection, query ,onSnapshot, doc, getDoc, arrayUnion, arrayRemove, updateDoc, initializeFirestore, persistentLocalCache, persistentMultipleTabManager } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-firestore.js";
 
 const firebaseConfig = { apiKey: "AIzaSyAwh2IXpNUCL2JHuTLKfc8FZDDd62g4j74", authDomain: "nrp888.firebaseapp.com", projectId: "nrp888", storageBucket: "nrp888.firebasestorage.app", messagingSenderId: "876054763342", appId: "1:876054763342:web:fddead6f7db3f8ebcff01f" };
 const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
 
 // Login form.
 function showLogin() {
@@ -247,6 +246,7 @@ function showLogin() {
 }
 
 // Enable Offline Persistence if Trusted Device while logging in.
+let db;
 function login(email, password, offlineSupport) {
   const auth = getAuth();
   signInWithEmailAndPassword(auth, email, password)
@@ -260,13 +260,33 @@ function login(email, password, offlineSupport) {
       alert(error.message);
     });
   if (offlineSupport) {
-    initializeFirestore(app, { localCache: persistentLocalCache({ tabManager: persistentSingleTabManager() })
-    }).catch((err) => {
+    db = initializeFirestore(app, { localCache: persistentLocalCache({ tabManager: persistentMultipleTabManager() }), ssl: true })
+    .catch((err) => {
+      if (err.code === 'unimplemented') {
+        alert('The current browser does not support all of the features required to enable persistence');
+      }
+    });
+  } else { 
+    db = initializeFirestore(app, { ssl: true })
+    .catch((err) => {
       if (err.code === 'unimplemented') {
         alert('The current browser does not support all of the features required to enable persistence');
       }
     });
   }
+}
+
+// onSnapshot
+function activateOnSnapshot() {
+  if (db !== undefined && db !== null) {
+    const responseFrom = query(myCollection(db, "Notes_Collection"));
+    onSnapshot(responseFrom, {includeMetadataChanges: true}, (snapshot) => {
+      const source = snapshot.metadata.fromCache ? "Cache" : "Server";
+      const sign = source === "Cache" ? "⚠" : "✔";
+      const colour = source === "Cache" ? "#e8af05" : "#1bd13d";
+      showAlert({ BgColor: `${colour}`, Text: `${sign} ${source}` });
+    });
+  };
 }
 
 // Check login status.
@@ -289,12 +309,16 @@ window.onload = loginStat;
   
 // Logout.
 function logout() {
+  if (loggedIn) {
   const auth = getAuth();
   signOut(auth).then(() => {
     showAlert({ BgColor: '#f2074e', Text: '✖ Logged Out'});
   }).catch((error) => {
     showAlert({ BgColor: '#e8af05', Text: '⚠ Error Logging Out'});
   });
+  } else {
+    showAlert({ BgColor: '#848', Text: 'Already Logged Out'});
+  }
 }
 
 // SaveNote.
