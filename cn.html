@@ -196,7 +196,7 @@ a4 { color: #d88; font-weight: 600 }
         <option value="Quotes" data-Name="Quotes" data-Colour="#1d423a">Quotes</option>
     </select>
 </div>
-    <button id="logout" style="background-color: #d00; position: absolute; top: 40vh; left: 40vw; font-weight: 600; padding: 20px; display: none; border-radius: 50px; box-shadow: #c44b4b; border: none; border-radius: 6px;" onclick="logout()">LOG OUT</button>
+    <button id="logout" style="background-color: #d41818; position: absolute; top: 40vh; left: 40vw; font-weight: 600; padding: 20px; display: none; border-radius: 50px; box-shadow: 8px 8px 8px #c44b4b; border: none; border-radius: 6px;" onclick="logout()">LOG OUT</button>
     <textarea id="textBox" spellcheck="false" autocomplete="off" translate="no"></textarea> 
     <button id="deleteButton" onclick="deleteNote()">DELETE</button>
     <button id="clearButton" onclick="document.getElementById('textBox').value=''">✖</button>
@@ -216,7 +216,7 @@ document.getElementById('loginStatus').onclick = showLogin;
 // Import necessary functions from Firebase SDKs.
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-app.js";
 import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-auth.js";
-import { getFirestore, collection as myCollection, query ,onSnapshot, doc, getDoc, arrayUnion, arrayRemove, updateDoc, initializeFirestore, persistentLocalCache, persistentMultipleTabManager } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-firestore.js";
+import { getFirestore, collection as myCollection, query ,onSnapshot, doc, getDoc, arrayUnion, arrayRemove, updateDoc, initializeFirestore, persistentLocalCache, persistentMultipleTabManager, clearIndexedDbPersistence } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-firestore.js";
 
 const firebaseConfig = { apiKey: "AIzaSyAwh2IXpNUCL2JHuTLKfc8FZDDd62g4j74", authDomain: "nrp888.firebaseapp.com", projectId: "nrp888", storageBucket: "nrp888.firebasestorage.app", messagingSenderId: "876054763342", appId: "1:876054763342:web:fddead6f7db3f8ebcff01f" };
 const app = initializeApp(firebaseConfig);
@@ -224,9 +224,9 @@ const app = initializeApp(firebaseConfig);
 // Login form.
 function showLogin() {
   const form = document.getElementById('form-container');
+  form.style.display = form.style.display === 'none' ? 'none' : 'block';
   const logoutBtn = document.getElementById('logout');
   if (!loggedIn) {
-    form.style.display = 'block';
     // Prevent adding multiple listeners to the form.
     if (!form.hasListener) {
       form.addEventListener('submit', function(event) {
@@ -260,18 +260,11 @@ function login(email, password, offlineSupport) {
       alert(error.message);
     });
   if (offlineSupport) {
-    db = initializeFirestore(app, { localCache: persistentLocalCache({ tabManager: persistentMultipleTabManager() }), ssl: true })
-    .catch((err) => {
-      if (err.code === 'unimplemented') {
-        alert('The current browser does not support all of the features required to enable persistence');
-      }
-    });
+    db = initializeFirestore(app, { localCache: persistentLocalCache({ tabManager: persistentMultipleTabManager() }) })
   } else { 
-    db = initializeFirestore(app, { ssl: true })
-    .catch((err) => {
-      if (err.code === 'unimplemented') {
-        alert('The current browser does not support all of the features required to enable persistence');
-      }
+    db = getFirestore(app)
+    .catch((error) => {
+      alert('Failed to Log In.');
     });
   }
 }
@@ -313,9 +306,19 @@ function logout() {
   const auth = getAuth();
   signOut(auth).then(() => {
     showAlert({ BgColor: '#f2074e', Text: '✖ Logged Out'});
-  }).catch((error) => {
+    document.getElementById('logout').style.display = 'none'; })
+  .catch((error) => {
     showAlert({ BgColor: '#e8af05', Text: '⚠ Error Logging Out'});
   });
+  // Clear IndexedDB cache after 0.5 seconds of logging out.
+  setTimeout(() => {
+  clearIndexedDbPersistence(db)
+    .then(() => {
+      showAlert({ BgColor: '#1bd13d', Text: '✔ IndexedDB Cleared'}); })
+    .catch((error) => {
+      showAlert({ BgColor: '#e8af05', Text: '⚠ Error Clearing IndexedDB'});
+    });
+  }, 500);
   } else {
     showAlert({ BgColor: '#848', Text: 'Already Logged Out'});
   }
