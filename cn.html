@@ -6,7 +6,6 @@
   <meta charset="utf-8">
   <meta name="theme-color" content="#02121b">
   <title>Cloud Notes</title>
-</head>
 <style>
 body {
     color: #fff;
@@ -121,7 +120,7 @@ h2 {
     animation-name: Alert;
     animation-duration: 1s;
 }
-#form-container { 
+#form-container {
     position: fixed;
     top: 30vh;
     left: 7vw;
@@ -168,6 +167,7 @@ a4 { color: #d88; font-weight: 600 }
 }
 @keyframes Login { from {opacity: 0; top: 0vh} to {opacity: 1; top: 30vh} }
 </style>
+</head>
 
 <body>
 <!--  * Keyboard Shortcuts: Fetch Notes: "ArrowRight + ArrowDown", Save Notes: "ArrowRight + ArrowUp", Delete Notes: "ArrowRight + End"  -->
@@ -180,7 +180,7 @@ a4 { color: #d88; font-weight: 600 }
           <input type="text" placeholder="Enter Email" id="userId" required> 
           <input type="password" placeholder="Enter Password" id="password" required> 
           <button type="submit">SUBMIT</button>
-          <br><a4>Enable Offline Support ?</a4><input type="checkbox" style="margin: 15px 5px -200px 5px; border:2px solid #888" name="check" id="device-type">
+          <br><a4>Enable Offline Support ?</a4><input id="device-type" name="check" type="checkbox" style="margin: 20px 0px 0px 15px; transform: translateY(3px);>
         </form>
      </div>
 
