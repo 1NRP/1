@@ -20,7 +20,7 @@ select:focus {
 h2 {
     font-family: cursive, arial, sans-serif;
     font-size: 25px;
-    font-weight: 900;
+    font-weight: 920;
     margin: -8px 0px 2px 0px;
 }
 #TopBar {
@@ -217,7 +217,7 @@ document.getElementById('loginStatus').onclick = showLogin;
 // Import necessary functions from Firebase SDKs.
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-app.js";
 import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-auth.js";
-import { getFirestore, collection as myCollection, query ,onSnapshot, doc, getDoc, arrayUnion, arrayRemove, updateDoc, initializeFirestore, persistentLocalCache, persistentMultipleTabManager, clearIndexedDbPersistence } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-firestore.js";
+import { getFirestore, collection /*as myCollection*/, query ,onSnapshot, doc, getDoc, arrayUnion, arrayRemove, updateDoc, initializeFirestore, persistentLocalCache, persistentMultipleTabManager, clearIndexedDbPersistence } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-firestore.js";
 
 const firebaseConfig = { apiKey: "AIzaSyAwh2IXpNUCL2JHuTLKfc8FZDDd62g4j74", authDomain: "nrp888.firebaseapp.com", projectId: "nrp888", storageBucket: "nrp888.firebasestorage.app", messagingSenderId: "876054763342", appId: "1:876054763342:web:fddead6f7db3f8ebcff01f" };
 const app = initializeApp(firebaseConfig);
@@ -247,7 +247,7 @@ function showLogin() {
 }
 
 // Enable Offline Persistence if Trusted Device while logging in.
-let db;
+let dataBaseRef;
 function login(email, password, offlineSupport) {
   const auth = getAuth();
   signInWithEmailAndPassword(auth, email, password)
@@ -261,18 +261,18 @@ function login(email, password, offlineSupport) {
       alert(error.message);
     });
   if (offlineSupport) {
-    db = initializeFirestore(app, { localCache: persistentLocalCache({ tabManager: persistentMultipleTabManager() }) })
+    dataBaseRef = initializeFirestore(app, { localCache: persistentLocalCache({ tabManager: persistentMultipleTabManager() }) })
     activateOnSnapshot();
   } else {
-    db = getFirestore(app)
+    dataBaseRef = getFirestore(app)
     activateOnSnapshot();
   }
 }
 
-// onSnapshot
+// 'onSnapshot' Realtime Request Listener.
 function activateOnSnapshot() {
-  if (db !== undefined && db !== null) {
-    const responseFrom = query(myCollection(db, "Notes_Collection"));
+  if (dataBaseRef !== undefined && dataBaseRef !== null) {
+    const responseFrom = query(collection(dataBaseRef, "Notes_Collection"));
     onSnapshot(responseFrom, {includeMetadataChanges: true}, (snapshot) => {
       const source = snapshot.metadata.fromCache ? "Cache" : "Server";
       const sign = source === "Cache" ? "⚠" : "✔";
@@ -312,7 +312,7 @@ function logout() {
   });
   // Clear IndexedDB cache after 0.5 seconds of logging out.
   setTimeout(() => {
-  clearIndexedDbPersistence(db)
+  clearIndexedDbPersistence(dataBaseRef)
     .then(() => {
       showAlert({ BgColor: '#1bd13d', Text: '✔ IndexedDB Cleared'}); })
     .catch((error) => {
@@ -328,8 +328,8 @@ function logout() {
     async function saveNote() {
       if (loggedIn) {
         try {
-            const Redis_Key = document.getElementById('Stores').value;
-            const fireDB = doc(db, "Notes_Collection", `${Redis_Key}`);
+            const Doc_Name = document.getElementById('Stores').value;
+            const fireDB = doc(dataBaseRef, "Notes_Collection", `${Doc_Name}`);
             const AlertText = document.getElementById('Header').innerText;
             const lines = document.getElementById('textBox').value.trim().split('\n\n\n\n');
             const date  = `● Date: ${new Date().toLocaleDateString('en-IN')} ●`;
@@ -355,8 +355,8 @@ function logout() {
    async function deleteNote() {
       if (loggedIn) {
         try {
-          const Redis_Key = document.getElementById('Stores').value;
-          const fireDB = doc(db, "Notes_Collection", `${Redis_Key}`);
+          const Doc_Name = document.getElementById('Stores').value;
+          const fireDB = doc(dataBaseRef, "Notes_Collection", `${Doc_Name}`);
           const AlertText = document.getElementById('Header').innerText;
           const deleteSentence = document.getElementById('deleteBox').value.trim();
           if (deleteSentence) {
@@ -375,8 +375,8 @@ function logout() {
     async function getNotes() {
       if (loggedIn) {
         try {
-          const Redis_Key = document.getElementById('Stores').value;
-          const fireDB = doc(db, "Notes_Collection", `${Redis_Key}`);
+          const Doc_Name = document.getElementById('Stores').value;
+          const fireDB = doc(dataBaseRef, "Notes_Collection", `${Doc_Name}`);
           const getNote = await getDoc(fireDB);
           if (getNote.exists()) {
             document.getElementById('textBox').value = getNote.data().Notes.reverse().join('\n=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=\n');
