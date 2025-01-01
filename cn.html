@@ -266,9 +266,6 @@ function login(email, password, offlineSupport) {
   } else {
     db = getFirestore(app)
     activateOnSnapshot();
-    .catch((error) => {
-      alert('Failed to Log In.');
-    });
   }
 }
 
