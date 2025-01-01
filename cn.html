@@ -6,6 +6,7 @@
   <meta charset="utf-8">
   <meta name="theme-color" content="#02121b">
   <title>Cloud Notes</title>
+</head>
 <style>
 body {
     color: #fff;
@@ -120,10 +121,10 @@ h2 {
     animation-name: Alert;
     animation-duration: 1s;
 }
-#form-container {
+#form-container { 
     position: fixed;
     top: 30vh;
-    left: 7vw;
+    left: 10vw;
     display: none;
     background-color: #456;
     box-shadow: 10px 10px 8px #789;
@@ -155,11 +156,11 @@ a4 { color: #d88; font-weight: 600 }
     border: 2px solid #ddd;
     font-weight: 600;
     background-color: #4CAF50; 
-    color: #ddd; 
+    color: #fff; 
     border-radius: 4px;
 }
 #form-container button:hover { 
-    background-color: #4caf50bb; }
+    background-color: #4caf5099; }
 /* Animations */
 @keyframes Alert {
     from {font-size: 10px; top: 5dvh}
@@ -167,7 +168,6 @@ a4 { color: #d88; font-weight: 600 }
 }
 @keyframes Login { from {opacity: 0; top: 0vh} to {opacity: 1; top: 30vh} }
 </style>
-</head>
 
 <body>
 <!--  * Keyboard Shortcuts: Fetch Notes: "ArrowRight + ArrowDown", Save Notes: "ArrowRight + ArrowUp", Delete Notes: "ArrowRight + End"  -->
@@ -180,7 +180,7 @@ a4 { color: #d88; font-weight: 600 }
           <input type="text" placeholder="Enter Email" id="userId" required> 
           <input type="password" placeholder="Enter Password" id="password" required> 
           <button type="submit">SUBMIT</button>
-          <br><a4>Enable Offline Support ?</a4><input id="device-type" name="check" type="checkbox" style="margin: 20px 0px 0px 15px; transform: translateY(3px);>
+          <br><a4>Enable Offline Support ?</a4><input type="checkbox" name="check" id="device-type" style="margin: 20px 0px 0px 15px; transform: translateY(3px)">
         </form>
      </div>
 
@@ -197,7 +197,7 @@ a4 { color: #d88; font-weight: 600 }
         <option value="Quotes" data-Name="Quotes" data-Colour="#1d423a">Quotes</option>
     </select>
 </div>
-    <button id="logout" style="background-color: #d41818; position: fixed; top: 40vh; left: 32vw; font-weight: 600; font-size: 20px; padding: 20px; display: none; border-radius: 50px; box-shadow: 8px 8px 6px #c44b4b; border: none; border-radius: 6px;" onclick="logout()">LOG OUT</button>
+    <button id="logout" style="background-color: #d41818; position: fixed; top: 40vh; left: 35vw; font-weight: 600; font-size: 20px; padding: 20px; display: none; border-radius: 50px; box-shadow: 8px 8px 6px #c44b4b; border: none; border-radius: 6px;" onclick="logout()">LOG OUT</button>
     <textarea id="textBox" spellcheck="false" autocomplete="off" translate="no"></textarea> 
     <button id="deleteButton" onclick="deleteNote()">DELETE</button>
     <button id="clearButton" onclick="document.getElementById('textBox').value=''">✖</button>
