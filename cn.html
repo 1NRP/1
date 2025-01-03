@@ -5,7 +5,7 @@
   <link rel="icon" sizes="192x192" href="https://1nrp.github.io/1/Images/N-Logo1.png">
   <meta charset="utf-8">
   <meta name="theme-color" content="#02121b">
-  <title>Cloud Notes</title>
+  <title>Firebase Cloud Notes</title>
 </head>
 <style>
 body {
@@ -217,7 +217,7 @@ document.getElementById('loginStatus').onclick = showLogin;
 // Import necessary functions from Firebase SDKs.
 import { initializeApp, getApps, deleteApp } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-app.js";
 import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-auth.js";
-import { getFirestore, collection as myCollection, query ,onSnapshot, doc, getDoc, arrayUnion, arrayRemove, updateDoc, initializeFirestore, persistentLocalCache, persistentMultipleTabManager, clearIndexedDbPersistence } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-firestore.js";
+import { getFirestore, collection as myCollection, query ,onSnapshot, doc, getDoc, arrayUnion, arrayRemove, updateDoc, initializeFirestore, persistentLocalCache, persistentMultipleTabManager, clearIndexedDbPersistence, waitForPendingWrites, terminate } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-firestore.js";
 const firebaseConfig = { apiKey: "AIzaSyAwh2IXpNUCL2JHuTLKfc8FZDDd62g4j74", authDomain: "nrp888.firebaseapp.com", projectId: "nrp888", storageBucket: "nrp888.firebasestorage.app", messagingSenderId: "876054763342", appId: "1:876054763342:web:fddead6f7db3f8ebcff01f" };
 
 // Initialize FirebaseApp if none exist.
@@ -239,7 +239,7 @@ if (getApps().length === 0) {
   }
  }
 }
-initiate();
+window.onload = initiate;
 
 // Login form.
 function showLogin() {
@@ -319,11 +319,15 @@ function loginStat() {
     }
   });
 }
-window.onload = loginStat;
   
-// Logout.
+// Logout and clear IndexedDB and entire Firebase instance.
 function logout() {
   if (loggedIn) {
+  waitForPendingWrites(dataBaseRef)
+  .then(() => {
+    terminate(dataBaseRef);
+  }) .catch((error) => { alert('Could Not Sync Pending Writes With Server.'); })
+
   const auth = getAuth();
   signOut(auth)
   .then(() => {
@@ -333,18 +337,19 @@ function logout() {
   .catch((error) => {
     showAlert({ BgColor: '#e8af05', Text: '⚠ Error Logging Out'});
   });
-  // Clear FirebaseApp instance and all functionalities (e.g. IndexedDB cache, Firestore, auth etc.) after 1 second of logging out.
+  // Clear FirebaseApp instance and all functionalities (e.g. IndexedDB cache, Firestore, auth etc.) after 1.5 seconds of logging out.
   setTimeout(() => {
+  // if (indexedDB) {}
+  clearIndexedDbPersistence(dataBaseRef) 
+    .then(() => { console.log("IndexedDB Cleared Successfully."); })
+    .catch((error) => { alert('Failed To Clear IndexedDB.'); }) 
   deleteApp(app)
     .then(() => {
       showAlert({ BgColor: '#1bd13d', Text: '✔ FirebaseApp Cleared'}); })
     .catch((error) => {
       showAlert({ BgColor: '#e8af05', Text: '⚠ Error Clearing FirebaseApp'});
     });
-  clearIndexedDbPersistence(dataBaseRef) 
-    .then(() => { console.log("IndexedDB Cleared Successfully."); })
-    .catch((error) => { alert('Failed To Clear IndexedDB.'); })
-  }, 1000);
+  }, 1500);
   } else {
     showAlert({ BgColor: '#848', Text: 'Already Logged Out'});
   }
