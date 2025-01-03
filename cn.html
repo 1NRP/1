@@ -173,7 +173,7 @@ a4 { color: #d88; font-weight: 600 }
 <!--  * Keyboard Shortcuts: Fetch Notes: "ArrowRight + ArrowDown", Save Notes: "ArrowRight + ArrowUp", Delete Notes: "ArrowRight + End"  -->
 <div id="TopBar">
     <h2 id="Header">Nihar's Cloud Notes</h2>
-    <div id='loginStatus' style="padding: 1px; height: 20px; width: 20px; position: absolute; border-radius: 50px; margin: -1vh 0px 0px 60vw" onclick="showLogin()"></div>
+    <div id='loginStatus' style="padding: 1px; height: 20px; width: 20px; position: absolute; border-radius: 50px; margin: -0.5vh 0px 0px 60vw" onclick="showLogin()"></div>
     <div id="form-container">
         <h2>Login</h2> 
         <form id="loginForm"> 
@@ -215,12 +215,31 @@ document.getElementById('logout').onclick = logout;
 document.getElementById('loginStatus').onclick = showLogin;
 
 // Import necessary functions from Firebase SDKs.
-import { initializeApp } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-app.js";
+import { initializeApp, getApps, deleteApp } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-app.js";
 import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-auth.js";
-import { getFirestore, collection /*as myCollection*/, query ,onSnapshot, doc, getDoc, arrayUnion, arrayRemove, updateDoc, initializeFirestore, persistentLocalCache, persistentMultipleTabManager, clearIndexedDbPersistence } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-firestore.js";
-
+import { getFirestore, collection as myCollection, query ,onSnapshot, doc, getDoc, arrayUnion, arrayRemove, updateDoc, initializeFirestore, persistentLocalCache, persistentMultipleTabManager, clearIndexedDbPersistence } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-firestore.js";
 const firebaseConfig = { apiKey: "AIzaSyAwh2IXpNUCL2JHuTLKfc8FZDDd62g4j74", authDomain: "nrp888.firebaseapp.com", projectId: "nrp888", storageBucket: "nrp888.firebasestorage.app", messagingSenderId: "876054763342", appId: "1:876054763342:web:fddead6f7db3f8ebcff01f" };
-const app = initializeApp(firebaseConfig);
+
+// Initialize FirebaseApp if none exist.
+let app;
+let dataBaseRef;
+let loggedIn = false; // Global Login-Status variable.
+async function  initiate() {
+if (getApps().length === 0) {
+  app = initializeApp(firebaseConfig);
+  console.log('Not Logged In.');
+} else {
+  app = getApps()[0];  // Use the first initialized firebase instance.
+  const loggedIn = await loginStat();
+  if (loggedIn) {  // 'auth' is working means there is already a firebase instance with an already configured(e.g. localCache) Firestore instance.
+  dataBaseRef = getFirestore(app);
+  activateOnSnapshot();
+  } else {
+    console.log('Could not initialize Firestore because User is not loggedIn yet.');
+  }
+ }
+}
+initiate();
 
 // Login form.
 function showLogin() {
@@ -247,12 +266,12 @@ function showLogin() {
 }
 
 // Enable Offline Persistence if Trusted Device while logging in.
-let dataBaseRef;
 function login(email, password, offlineSupport) {
   const auth = getAuth();
   signInWithEmailAndPassword(auth, email, password)
     .then((userCredential) => {
-      // Signed in.
+      // Promise successfully resolved and Signed in.
+      loggedIn = true;
       const user = userCredential.user;
       showAlert({ BgColor: '#1bd13d', Text: '✔ Logged In' });
       document.getElementById('form-container').style.display = 'none';
@@ -264,17 +283,18 @@ function login(email, password, offlineSupport) {
     dataBaseRef = initializeFirestore(app, { localCache: persistentLocalCache({ tabManager: persistentMultipleTabManager() }) })
     activateOnSnapshot();
   } else {
-    dataBaseRef = getFirestore(app)
+    dataBaseRef = getFirestore(app);
     activateOnSnapshot();
+    console.log('Firestore initialized with default configuration.');
   }
 }
 
 // 'onSnapshot' Realtime Request Listener.
 function activateOnSnapshot() {
   if (dataBaseRef !== undefined && dataBaseRef !== null) {
-    const responseFrom = query(collection(dataBaseRef, "Notes_Collection"));
+    const responseFrom = query(myCollection(dataBaseRef, "Notes_Collection"));
     onSnapshot(responseFrom, {includeMetadataChanges: true}, (snapshot) => {
-      const source = snapshot.metadata.fromCache ? "Cache" : "Server";
+      const source = snapshot.metadata.fromCache ? "Cache" : "Server";  // 'isFromCache' returns true if the snapshot was created from cached data rather than guaranteed up-to-date server data. If your listener has opted into metadata updates (via INCLUDE) you will receive another snapshot with isFromCache() equal to false once the client has received up-to-date data from the backend.
       const sign = source === "Cache" ? "⚠" : "✔";
       const colour = source === "Cache" ? "#e8af05" : "#1bd13d";
       showAlert({ BgColor: `${colour}`, Text: `${sign} ${source}` });
@@ -283,18 +303,19 @@ function activateOnSnapshot() {
 }
 
 // Check login status.
-let loggedIn = false; // Global Login-Status variable.
 function loginStat() {
   const statBtn = document.getElementById('loginStatus');
   const auth = getAuth();
   onAuthStateChanged(auth, (user) => {
     if (user) {
-      loggedIn = true;
       statBtn.style.backgroundColor = '#0d0';
+      loggedIn = true;
+      return loggedIn;
     } else {
       // User is signed out.
-      loggedIn = false;
       statBtn.style.backgroundColor = '#d00';
+      loggedIn = false;
+      return loggedIn;
     }
   });
 }
@@ -304,21 +325,26 @@ window.onload = loginStat;
 function logout() {
   if (loggedIn) {
   const auth = getAuth();
-  signOut(auth).then(() => {
+  signOut(auth)
+  .then(() => {
+    loggedIn = false;
     showAlert({ BgColor: '#f2074e', Text: '✖ Logged Out'});
     document.getElementById('logout').style.display = 'none'; })
   .catch((error) => {
     showAlert({ BgColor: '#e8af05', Text: '⚠ Error Logging Out'});
   });
-  // Clear IndexedDB cache after 0.5 seconds of logging out.
+  // Clear FirebaseApp instance and all functionalities (e.g. IndexedDB cache, Firestore, auth etc.) after 1 second of logging out.
   setTimeout(() => {
-  clearIndexedDbPersistence(dataBaseRef)
+  deleteApp(app)
     .then(() => {
-      showAlert({ BgColor: '#1bd13d', Text: '✔ IndexedDB Cleared'}); })
+      showAlert({ BgColor: '#1bd13d', Text: '✔ FirebaseApp Cleared'}); })
     .catch((error) => {
-      showAlert({ BgColor: '#e8af05', Text: '⚠ Error Clearing IndexedDB'});
+      showAlert({ BgColor: '#e8af05', Text: '⚠ Error Clearing FirebaseApp'});
     });
-  }, 1500);
+  clearIndexedDbPersistence(dataBaseRef) 
+    .then(() => { console.log("IndexedDB Cleared Successfully."); })
+    .catch((error) => { alert('Failed To Clear IndexedDB.'); })
+  }, 1000);
   } else {
     showAlert({ BgColor: '#848', Text: 'Already Logged Out'});
   }
@@ -347,7 +373,7 @@ function logout() {
           console.error("Error saving note:", error);
         }
       } else {
-        login();
+        showAlert({ BgColor: '#e8af05', Text: '⚠ Login First'});
       }
     }
 
@@ -367,7 +393,7 @@ function logout() {
           console.error("Error deleting note:", error);
         }
       } else {
-          login();
+        showAlert({ BgColor: '#e8af05', Text: '⚠ Login First'});
       }
     }
 
@@ -389,11 +415,10 @@ function logout() {
         }
       } else {
           // Trigger Login Function.
-          login();
+          showAlert({ BgColor: '#e8af05', Text: '⚠ Login First'});
           }
       }
     
-
 // Function to paste specific note into deleteBox. 
 function pasteLineText(event) {
     var textBox = document.getElementById('textBox');
