@@ -319,7 +319,8 @@ function loginStat() {
     }
   });
 }
-  
+loginStat();  // Run at Page Load.
+
 // Logout and clear IndexedDB and entire Firebase instance.
 function logout() {
   if (loggedIn) {
