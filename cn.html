@@ -20,7 +20,7 @@ select:focus {
 h2 {
     font-family: cursive, arial, sans-serif;
     font-size: 25px;
-    font-weight: 920;
+    font-weight: 910;
     margin: -8px 0px 2px 0px;
 }
 #TopBar {
@@ -197,7 +197,7 @@ a4 { color: #d88; font-weight: 600 }
         <option value="Quotes" data-Name="Quotes" data-Colour="#1d423a">Quotes</option>
     </select>
 </div>
-    <button id="logout" style="background-color: #d41818; position: fixed; top: 40vh; left: 35vw; font-weight: 600; font-size: 20px; padding: 20px; display: none; border-radius: 50px; box-shadow: 8px 8px 6px #c44b4b; border: none; border-radius: 6px;" onclick="logout()">LOG OUT</button>
+    <button id="logout" style="background-color: #d41818; position: fixed; top: 40vh; left: 32vw; font-weight: 600; font-size: 20px; padding: 20px; display: none; border-radius: 50px; box-shadow: 8px 8px 6px #c44b4b; border: none; border-radius: 6px;" onclick="logout()"><h2>LOG OUT</h2></button>
     <textarea id="textBox" spellcheck="false" autocomplete="off" translate="no"></textarea> 
     <button id="deleteButton" onclick="deleteNote()">DELETE</button>
     <button id="clearButton" onclick="document.getElementById('textBox').value=''">✖</button>
@@ -218,13 +218,13 @@ document.getElementById('loginStatus').onclick = showLogin;
 import { initializeApp, getApps, deleteApp } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-app.js";
 import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-auth.js";
 import { getFirestore, collection as myCollection, query ,onSnapshot, doc, getDoc, arrayUnion, arrayRemove, updateDoc, initializeFirestore, persistentLocalCache, persistentMultipleTabManager, clearIndexedDbPersistence, waitForPendingWrites, terminate } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-firestore.js";
+
 const firebaseConfig = { apiKey: "AIzaSyAwh2IXpNUCL2JHuTLKfc8FZDDd62g4j74", authDomain: "nrp888.firebaseapp.com", projectId: "nrp888", storageBucket: "nrp888.firebasestorage.app", messagingSenderId: "876054763342", appId: "1:876054763342:web:fddead6f7db3f8ebcff01f" };
 const app = initializeApp(firebaseConfig);
 
 // Initialize Firestore based on Persistence Choice.
 let dataBaseRef;
-async function  initFirestore() {
-const loggedIn = await loginStat();
+function initFirestore() {
 if (loggedIn) {
   if (localStorage.getItem(FirestorePersistence) === "Enabled") {
     dataBaseRef = initializeFirestore(app, { localCache: persistentLocalCache({ tabManager: persistentMultipleTabManager() }) })
@@ -237,7 +237,6 @@ if (loggedIn) {
   console.log("Could not initialize Firestore because User is not logged in yet.");
   }
 }
-window.onload = initFirestore;
 
 // Login form.
 function showLogin() {
@@ -280,6 +279,7 @@ function login(email, password, offlineSupport) {
   if (offlineSupport) {
     localStorage.setItem("FirestorePersistence", "Enabled");
     dataBaseRef = initializeFirestore(app, { localCache: persistentLocalCache({ tabManager: persistentMultipleTabManager() }) })
+    console.log('Firestore initialized with IndexedDB caching for offline support and multiple tab offline persistence.');
     activateOnSnapshot();
   } else {
     localStorage.setItem("FirestorePersistence", "Disabled");
@@ -309,18 +309,17 @@ async function loginStat() {
     const auth = getAuth();
     onAuthStateChanged(auth, (user) => {
       if (user) {
-        loggedIn = true; // For all Fetch functions [getNotes(), saveNote(), deleteNote() etc.]
+        loggedIn = true;
         statBtn.style.backgroundColor = '#0d0';
-        return loggedIn; // For initFirestore() function.
+        initFirestore();
       } else {
         // User is signed out.
-        loggedIn = false; // For all Fetch functions [getNotes(), saveNote(), deleteNote() etc.]
+        loggedIn = false;
         statBtn.style.backgroundColor = '#d00';
-        return loggedIn; // For initFirestore() function.
     }
   });
  }
-//loginStat();  // Run at Page Load.
+loginStat();  // Run at Page Load.
 
 // Logout and clear IndexedDB and entire Firebase instance.
 function logout() {
