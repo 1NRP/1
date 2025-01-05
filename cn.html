@@ -197,7 +197,7 @@ a4 { color: #d88; font-weight: 600 }
         <option value="Quotes" data-Name="Quotes" data-Colour="#1d423a">Quotes</option>
     </select>
 </div>
-    <button id="logout" style="background-color: #d41818; position: fixed; top: 40vh; left: 32vw; font-weight: 600; font-size: 20px; padding: 20px; display: none; border-radius: 50px; box-shadow: 8px 8px 6px #c44b4b; border: none; border-radius: 6px;" onclick="logout()"><h2>LOG OUT</h2></button>
+    <button id="logout" style="background-color: #d41818; position: fixed; top: 40vh; left: 32vw; font-weight: 600; font-size: 20px; padding: 20px; display: none; border-radius: 50px; box-shadow: 8px 8px 6px #c44b4b; border: none; border-radius: 6px;" onclick="logout()">LOG OUT</button>
     <textarea id="textBox" spellcheck="false" autocomplete="off" translate="no"></textarea> 
     <button id="deleteButton" onclick="deleteNote()">DELETE</button>
     <button id="clearButton" onclick="document.getElementById('textBox').value=''">✖</button>
@@ -226,7 +226,7 @@ const app = initializeApp(firebaseConfig);
 let dataBaseRef;
 function initFirestore() {
 if (loggedIn) {
-  if (localStorage.getItem(FirestorePersistence) === "Enabled") {
+  if (localStorage.getItem("FirestorePersistence") === "Enabled") {
     dataBaseRef = initializeFirestore(app, { localCache: persistentLocalCache({ tabManager: persistentMultipleTabManager() }) })
     console.log('Firestore initialized with persistentLocalCache.');
   } else {
