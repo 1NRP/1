@@ -340,10 +340,11 @@ function logout() {
   });
   // Clear FirebaseApp instance and all functionalities (e.g. IndexedDB cache, Firestore, auth etc.) after 1.5 seconds of logging out.
   setTimeout(() => {
-  // if (indexedDB) {}
+  if (localStorage.getItem("FirestorePersistence") === "Enabled") {
   clearIndexedDbPersistence(dataBaseRef) 
     .then(() => { console.log("IndexedDB Cleared Successfully."); })
-    .catch((error) => { alert('Failed To Clear IndexedDB.'); }) 
+    .catch((error) => { alert('Failed To Clear IndexedDB.'); })
+  }
   deleteApp(app)
     .then(() => {
       showAlert({ BgColor: '#1bd13d', Text: '✔ FirebaseApp Cleared'}); })
@@ -365,7 +366,7 @@ function logout() {
             const AlertText = document.getElementById('Header').innerText;
             const lines = document.getElementById('textBox').value.trim().split('\n\n\n\n');
             const date  = `● Date: ${new Date().toLocaleDateString('en-IN')} ●`;
-            const saveSentence = date + "\n" + lines[lines.length - 1];
+            const saveSentence = date + "\n" + lines[lines.length - 1].trim();
             if (lines && saveSentence) {
               await updateDoc(fireDB, { Notes: arrayUnion(saveSentence) });
             }
