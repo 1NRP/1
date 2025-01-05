@@ -1,5 +1,10 @@
 { pkgs, ... }: {
+  channel = "stable-24.05";
 
+# Add packages.
+  packages = [
+    pkgs.nodejs_20
+    ];
   # Enable previews and customize configuration
   idx.previews = {
     enable = true;
@@ -10,12 +15,12 @@
           "npm"
           "run"
           "start"
-          "--"
-          "--port"
-          "$PORT"
-          "--host"
-          "0.0.0.0"
-          "--disable-host-check"
+          #"--"
+          #"--port"
+          #"$PORT"
+          #"--host"
+          #"0.0.0.0"
+          #"--disable-host-check"
         ];
         manager = "web";
         # Optionally, specify the directory where your web app resides
