@@ -1,6 +1,6 @@
 {
   "scripts": {
-    "start": "serve"
+    "preview": "serve"
   },
   "dependencies": {
     "lite-server": "^2.5.4",

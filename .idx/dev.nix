@@ -14,10 +14,11 @@
         command = [
           "npm"
           "run"
-          "start"
+          "preview"
+          "-p"
           #"--"
           #"--port"
-          #"$PORT"
+          "$PORT"
           #"--host"
           #"0.0.0.0"
           #"--disable-host-check"
