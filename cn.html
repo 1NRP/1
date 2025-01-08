@@ -205,7 +205,9 @@ a4 { color: #d88; font-weight: 600 }
     <button id="getButton" onclick="getNotes()">VIEW</button>
     <textarea id="deleteBox" spellcheck="false" autocomplete="off" translate="no"></textarea>
 
-<script type="module">
+<script src="script.js" type="module">
+
+/*
 // Button click Event-Listeners.
 document.getElementById('saveButton').onclick = saveNote;
 document.getElementById('getButton').onclick = getNotes;
@@ -493,7 +495,7 @@ document.addEventListener("keydown", function(event) {
         } else if (event.key === "ArrowDown") {
             getNotes();
         } else if (event.key === "End") {
-            deleteNote();
+            deleteNote(); 
         }
     }
 });
@@ -502,6 +504,7 @@ document.addEventListener("keyup", function(event) {
         arrowRightPressed = false;
     }
 });
+*/
 
 </script>
 </body>
