@@ -25,35 +25,37 @@ body {
   background-color:#021133;
   width:80%;
   outline: 0;
-  font-weight: 600;
+  font-weight: 700;
   font-size: 22px;
 }
 #loadBtn {
   border:none;
   width:20%;
-  font-weight:900;
+  font-weight: 900;
   background-color:#345;
   font-size:20px;
   color:#369
 }
 ::placeholder {
   font-size: 22px;
-  font-weight: 600;
+  font-weight: 700;
   color: #a4a4a4;
 }
 #viewBox {
       width: 99%;
-      height: 90dvh;
+      height: 94dvh;
       border-radius: 4px;
       border: 2px solid #333;
       overflow-y: scroll;
       background-color: #02121b;
       margin: 4px 0px 2px 0px;
       display: flex;
+      flex-wrap: wrap;
+      overflow-x: auto;
       flex-direction: row;
-    }
+}
 .imgBox {
-    max-width: 48%;
+    width: 48%;
     height: auto;
     margin: 2px;
 }
@@ -78,7 +80,7 @@ var range = document.getElementById('txtBox').value;
 var parts = range.split('-');
 var start = +parts[0], end = +parts[1]; // The Unary '+' operator is shorthand for converting a string(parts[0] is returned as a string from "split('-')" method) to a number. It is similar to "parseInt(parts[0])" and "Number(parts[0])".
 if (end-start > 20) {
-  alert('Range must be less than 20. It is useful for ensuring less bandwidth usage during the Thumbnail Fetching process.'); 
+  alert('Range should be less than 20. It is useful for ensuring less bandwidth usage during the Thumbnail Fetching process.'); 
   return; // "return" would exit the function. 
 }
 var response = await fetch("https://srbo3gia676hprqy.public.blob.vercel-storage.com/KV-Store-Saved-TB-Link-Thumbnails.json");
@@ -90,7 +92,7 @@ for ( var obj of jsonrange ) {
     var box = document.createElement('div');
     box.className = 'imgBox';
     box.innerHTML = ` 
-      <img src="${image}" onclick="navigator.clipboard.writeText('${link}')" alt="Thumbnail Image" class="image">
+      <img src="${image}" onclick="navigator.clipboard.writeText('https://teraboxapp.com/s/${link}')" alt="Thumbnail Image" class="image">
       <span style="color:#766; font-weight:700; display:block; text-align:center; ">${count}</span>
     `;
     document.getElementById('viewBox').appendChild(box);
