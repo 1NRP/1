@@ -17,7 +17,7 @@ body {
   flex-direction:row;
   border:2px dashed #358;
   width:99%;
-  height:10vh;
+  height:5vh;
 }
 #txtBox {
   border:none;
@@ -38,7 +38,7 @@ body {
 ::placeholder {font-size:18px}
 #viewBox {
       width: 99%;
-      height: 80vh;
+      height: 95vh;
       border-radius: 4px;
       border: 2px solid #333;
       overflow-y: scroll;
@@ -47,8 +47,13 @@ body {
       display: flex;
       flex-direction: row;
     }
-    .image {
-      max-width: 48%;
+.imgBox {
+    max-width: 48%;
+    height: auto;
+    margin: 2px;
+}
+.image {
+      max-width: 100%;
       height: auto;
       border-radius: 4px;
     }
@@ -56,12 +61,34 @@ body {
 </head>
 <body>
 <div id="header">
-    <textarea id='txtBox' placeholder:"Format: AAA-BBB" ></textarea>
-    <button id='loadBtn'>LOAD</button>
+    <textarea id='txtBox' placeholder="Example: 150-160" ></textarea>
+    <button id='loadBtn' onclick="viewImages()">LOAD</button>
 </div>
 <div id="viewBox"></div>
+
 <script>
-  
+// Fetch JSON and view thumbnails.
+async function viewImages() {
+var range = document.getElementById('txtBox').value;
+var parts = range.split('-');
+var start = +parts[0], end = +parts[1]; // The Unary '+' operator is shorthand for converting a string(parts[0] is returned as a string from "split('-')" method) to a number. It is similar to "parseInt(parts[0])" and "Number(parts[0])".
+if (end-start > 20) { alert('Range must be less than 20. It is useful for ensuring less bandwidth usage during the Thumbnail Fetching process.'); return; // "return" would exit the function. }
+var response = await fetch("https://srbo3gia676hprqy.public.blob.vercel-storage.com/KV-Store-Saved-TB-Link-Thumbnails.json");
+var json = await response.json();
+var jsonrange = json.slice(start, end+1); // In "array.slice()" method 1st number is inclusive while 2nd number is not.
+let count = start;
+for ( var obj of jsonrange ) {
+    var link = obj.url, image = obj.img;
+    var box = document.createElement('div');
+    box.className = 'imgBox';
+    box.innerHTML = ` 
+      <img src="${image}" onclick="navigator.clipboard.writeText('${link}')" alt="Thumbnail Image" class="image">
+      <span style="color:#766; font-weight:700; display:block; text-align:center; ">${count}</span>
+    `;
+    document.getElementById('viewBox').appendChild(box);
+    count++;
+}
+
 </script>
 </body>
 </html>
