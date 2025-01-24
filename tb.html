@@ -28,6 +28,9 @@ body {
   font-weight: 700;
   font-size: 22px;
 }
+#loadBtn: hover {
+  background-color: #567;
+}
 #loadBtn {
   border:none;
   width:20%;
@@ -43,7 +46,7 @@ body {
 }
 #viewBox {
       width: 99%;
-      height: 94dvh;
+      height: 92dvh;
       border-radius: 4px;
       border: 2px solid #333;
       overflow-y: scroll;
@@ -55,7 +58,7 @@ body {
       flex-direction: row;
 }
 .imgBox {
-    width: 48%;
+    min-width: 48%; /* "min-width" shows landscaped images as one image per row, improving visibility. */
     height: auto;
     margin: 2px;
 }
