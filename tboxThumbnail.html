@@ -28,8 +28,8 @@ body {
   font-weight: 700;
   font-size: 22px;
 }
-#loadBtn: hover {
-  background-color: #567;
+#loadBtn:hover {
+  background-color: #223344;
 }
 #loadBtn {
   border:none;
@@ -46,7 +46,7 @@ body {
 }
 #viewBox {
       width: 99%;
-      height: 92dvh;
+      height: 90dvh;
       border-radius: 4px;
       border: 2px solid #333;
       overflow-y: scroll;
@@ -82,7 +82,10 @@ async function viewImages() {
 var range = document.getElementById('txtBox').value;
 var parts = range.split('-');
 var start = +parts[0], end = +parts[1]; // The Unary '+' operator is shorthand for converting a string(parts[0] is returned as a string from "split('-')" method) to a number. It is similar to "parseInt(parts[0])" and "Number(parts[0])".
-if (end-start > 20) {
+if (range === '') {
+   alert('Please Specify The Range First.');
+   return;
+} else if (end-start > 20) {
   alert('Range should be less than 20. It is useful for ensuring less bandwidth usage during the Thumbnail Fetching process.'); 
   return; // "return" would exit the function. 
 }
