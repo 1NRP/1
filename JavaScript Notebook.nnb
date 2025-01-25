@@ -1,9 +1,16 @@
 {
     "cells": [
         {
-            "language": "javascript",
+            "language": "markdown",
             "source": [
-                "console.log('hi')"
+                "# JavaScript Notebook"
+            ],
+            "outputs": []
+        },
+        {
+            "language": "typescript",
+            "source": [
+                "console.log('Hello NRP.')"
             ],
             "outputs": [
                 {
@@ -11,7 +18,7 @@
                         {
                             "mime": "application/vnd.code.notebook.stdout",
                             "value": [
-                                "hi",
+                                "Hello NRP.",
                                 ""
                             ]
                         }
@@ -20,9 +27,50 @@
             ]
         },
         {
-            "language": "javascript",
+            "language": "markdown",
             "source": [
-                "// Fetch the URL and get the text\nconst response = await fetch(\"https://example.com\");\nconst text = await response.text();\n\n// Display the text\nconsole.log(text);\n"
+                " ### Fetch URL"
+            ],
+            "outputs": []
+        },
+        {
+            "language": "typescript",
+            "source": [
+                "// Fetch the URL and get the text\nconst query = \"hairy bhabhi\";\n\nconst url = `https://getnewlink.com/api/search?query=${query}/`;\nconst response = await fetch(url);\nconst text = await response.json();\n  \n// Display the text\nfor (let cap of text) {\n  const link2 = cap.caption;\n  const link3 = link2.toString().split('\\n');\n  const title = link3[0];\n  const link1 = link3[2];\n  console.log(title + '\\n\\n' + link1);\n}"
+            ],
+            "outputs": [
+                {
+                    "items": [
+                        {
+                            "mime": "application/vnd.code.notebook.stdout",
+                            "value": [
+                                "⚡Newly married bhabhi sending her hairy pussy spreading video to her husband 🥵😂❤️ ",
+                                "",
+                                "📱 𝐖𝐚𝐭𝐜𝐡 𝐎𝐧𝐥𝐢𝐧𝐞 👨‍💻 ",
+                                "Hot Indian Bhabhi Priya Emma Masturbating her Hairy Wet Pussy ",
+                                "",
+                                "https://terabox.com/s/1R2mqKxpGa6F2Ta-rkfjd8w",
+                                "Beautiful Bhabhi Hairy Pussy Bhabhi Fucking✌️🔥❤️ ",
+                                "",
+                                "📱 𝐖𝐚𝐭𝐜𝐡 𝐎𝐧𝐥𝐢𝐧𝐞 👨‍💻 ",
+                                ""
+                            ]
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "language": "markdown",
+            "source": [
+                "### Fetch HTML Text"
+            ],
+            "outputs": []
+        },
+        {
+            "language": "typescript",
+            "source": [
+                "// Fetch the URL and get the text\nconst resp = await fetch(\"https://example.com\");\nconst txt = await resp.text();\n\n// Display the text\nconsole.log(txt);\n"
             ],
             "outputs": [
                 {
