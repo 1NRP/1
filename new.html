@@ -42,6 +42,8 @@
       right: 10px;
       display: flex;
       gap: 5px;
+      margin: 10px 0px;
+      z-index: 100;
     }
     .cell-buttons button {
       cursor: pointer;
@@ -51,13 +53,23 @@
       margin-top: 10px;
       background: #f9f9f9;
       padding: 10px;
-      border: 1px solid #ccc;
+      border: 1px solid #5f4faa;
       border-radius: 5px;
       overflow-y: auto;
       max-height: 150px;
     }
+    .logDiv {
+      color: #e2eeee;
+      border: 1px solid #5f4faa;
+      background-color: #3c65bd6e;
+    }
+    .errorDiv {
+      color: #e2e2e2;
+      border: 1px solid #e02e2e;
+      background-color: #c029298f;
+    }
     .minimized {
-      display: none;
+      max-height: 10px;
     }
     .markdown-render {
       padding: 10px;
@@ -167,14 +179,15 @@
 
       console.log = (...args) => {
         const msg = document.createElement('div');
-        msg.textContent = args.join(' ');
+        msg.className = 'logDiv';
+        msg.textContent = args.join('\n');
         output.appendChild(msg);
       };
 
       console.error = (...args) => {
         const msg = document.createElement('div');
-        msg.style.color = 'red';
-        msg.textContent = args.join(' ');
+        msg.className = 'errorDiv';
+        msg.textContent = args.join('\n');
         output.appendChild(msg);
       };
 
