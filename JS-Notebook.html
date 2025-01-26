@@ -3,7 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>JavaScript Notebook</title>
+  <link rel="icon" sizes="192x192" href="https://1nrp.github.io/1/Images/N-Logo1.png">
+  <title>Nihar's JS Notebook</title>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -15,17 +16,25 @@
       justify-content: space-between;
       align-items: center;
       padding: 10px;
-      background-color: #f4f4f4;
-      border-bottom: 1px solid #ccc;
+      background-color: #00200020;
+      border-bottom: 2px solid #34a054;
     }
     .toolbar input {
       font-size: 16px;
+      border: 2px solid #34a054;
+      background-color: #00400040;
+      border-radius: 5px;
       padding: 5px;
     }
     .toolbar button {
       padding: 5px 10px;
       font-size: 14px;
-      cursor: pointer;
+      border-radius: 5px;
+      background-color: #00400040;
+      border: 2px solid #34a054;
+    }
+    .toolbar button:hover {
+      background-color: #236997;
     }
     .cell {
       border: 1px solid #ccc;
@@ -35,6 +44,9 @@
     }
     .code-cell, .text-cell {
       position: relative;
+      border: 2px solid #2e633540;
+      border-radius: 4px;
+      background-color: #397ba720;
     }
     .cell-buttons {
       position: absolute;
@@ -46,27 +58,35 @@
       z-index: 100;
     }
     .cell-buttons button {
-      cursor: pointer;
-      font-size: 12px;
+      background-color: #4c8fb6b0;
+      border: 2px solid #2e6335;
+      padding: 6px;
+      border-radius: 4px;
+    }
+    .cell-buttons button:hover {
+      background-color: #444;
     }
     .output {
-      margin-top: 10px;
+      margin-top: 4px;
       background: #f9f9f9;
-      padding: 10px;
-      border: 1px solid #5f4faa;
-      border-radius: 5px;
-      overflow-y: auto;
-      max-height: 150px;
+      padding: 4px;
+      min-height: 10px;
+      border: 1px solid #adad51b0;
+      border-radius: 4px;
+      overflow-y: visible;
     }
     .logDiv {
-      color: #e2eeee;
-      border: 1px solid #5f4faa;
-      background-color: #3c65bd6e;
+      color: #ddd;
+      border: 1px solid #00d;
+      padding: 4px;
+      border-bottom: none;
+      background-color: #00004040;
     }
     .errorDiv {
-      color: #e2e2e2;
-      border: 1px solid #e02e2e;
-      background-color: #c029298f;
+      color: #ddd;
+      border: 1px solid #d00;
+      padding: 4px;
+      background-color: #40000040;
     }
     .minimized {
       max-height: 10px;
@@ -85,8 +105,8 @@
   <div class="toolbar">
     <input id="notebook-title" placeholder="Untitled Notebook" value="Untitled Notebook">
     <div>
-      <button id="add-code">Add Code</button>
-      <button id="add-text">Add Text</button>
+      <button id="add-code">+ CODE</button>
+      <button id="add-text">+ TEXT</button>
       <button id="download-notebook">Download</button>
       <input id="upload-notebook" type="file" style="display: none;">
       <button id="upload-trigger">Upload</button>
@@ -97,6 +117,26 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.7/mode/javascript/javascript.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
   <script>
+    /*
+    const editor = CodeMirror(document.getElementById('notebook'), {
+    mode: 'javascript',
+    theme: 'monokai',
+    value: '',
+    autoCloseBrackets: true,
+    matchBrackets: true,
+    lineNumbers: false,
+    extraKeys: {
+      "Enter": function(cm) {
+        var completion = cm.state.completionActive;
+        if (completion) {
+          completion.pick();
+        } else {
+          cm.execCommand("newlineAndIndent");
+        }
+      }
+    }
+  });
+*/
     let cellCounter = 0;
     const notebook = document.getElementById('notebook');
 
@@ -107,9 +147,9 @@
       cell.id = cellId;
       cell.innerHTML = `
         <div class="cell-buttons">
-          <button onclick="runCode('${cellId}')">Run</button>
-          <button onclick="minimizeCell('${cellId}')">&#9660;</button>
-          <button onclick="deleteCell('${cellId}')">Delete</button>
+          <button onclick="runCode('${cellId}')">⚙️</button>
+          <button onclick="minimizeCell('${cellId}')">▶️</button>
+          <button onclick="deleteCell('${cellId}')">❌</button>
         </div>
         <textarea class="code-editor"></textarea>
         <div class="output"></div>
@@ -180,14 +220,14 @@
       console.log = (...args) => {
         const msg = document.createElement('div');
         msg.className = 'logDiv';
-        msg.textContent = args.join('\n');
+        msg.textContent = '» ' + args.join('');
         output.appendChild(msg);
       };
 
       console.error = (...args) => {
         const msg = document.createElement('div');
         msg.className = 'errorDiv';
-        msg.textContent = args.join('\n');
+        msg.textContent = '» ' + args.join('');
         output.appendChild(msg);
       };
 
@@ -238,7 +278,7 @@
       const blob = new Blob([JSON.stringify(content, null, 2)], { type: 'application/json' });
       const link = document.createElement('a');
       link.href = URL.createObjectURL(blob);
-      link.download = `${title || 'notebook'}.json`;
+      link.download = `JSNB-${title || 'Notebook'}.json`;
       link.click();
     }
 
