@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>JavaScript Notebook</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+    }
+    .toolbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px;
+      background-color: #f4f4f4;
+      border-bottom: 1px solid #ccc;
+    }
+    .toolbar input {
+      font-size: 16px;
+      padding: 5px;
+    }
+    .toolbar button {
+      padding: 5px 10px;
+      font-size: 14px;
+      cursor: pointer;
+    }
+    .cell {
+      border: 1px solid #ccc;
+      margin: 10px;
+      padding: 10px;
+      border-radius: 5px;
+    }
+    .code-cell, .text-cell {
+      position: relative;
+    }
+    .cell-buttons {
+      position: absolute;
+      top: 5px;
+      right: 10px;
+      display: flex;
+      gap: 5px;
+    }
+    .cell-buttons button {
+      cursor: pointer;
+      font-size: 12px;
+    }
+    .output {
+      margin-top: 10px;
+      background: #f9f9f9;
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      overflow-y: auto;
+      max-height: 150px;
+    }
+    .minimized {
+      display: none;
+    }
+    .markdown-render {
+      padding: 10px;
+      background: #fff;
+      border: 1px dashed #ccc;
+      border-radius: 5px;
+    }
+  </style>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.7/codemirror.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.7/theme/monokai.min.css">
+</head>
+<body>
+  <div class="toolbar">
+    <input id="notebook-title" placeholder="Untitled Notebook" value="Untitled Notebook">
+    <div>
+      <button id="add-code">Add Code</button>
+      <button id="add-text">Add Text</button>
+      <button id="download-notebook">Download</button>
+      <input id="upload-notebook" type="file" style="display: none;">
+      <button id="upload-trigger">Upload</button>
+    </div>
+  </div>
+  <div id="notebook"></div>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.7/codemirror.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.7/mode/javascript/javascript.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <script>
+    let cellCounter = 0;
+    const notebook = document.getElementById('notebook');
+
+    function createCodeCell() {
+      const cellId = `cell-${++cellCounter}`;
+      const cell = document.createElement('div');
+      cell.classList.add('cell', 'code-cell');
+      cell.id = cellId;
+      cell.innerHTML = `
+        <div class="cell-buttons">
+          <button onclick="runCode('${cellId}')">Run</button>
+          <button onclick="minimizeCell('${cellId}')">&#9660;</button>
+          <button onclick="deleteCell('${cellId}')">Delete</button>
+        </div>
+        <textarea class="code-editor"></textarea>
+        <div class="output"></div>
+      `;
+      notebook.appendChild(cell);
+
+      const editor = CodeMirror.fromTextArea(cell.querySelector('.code-editor'), {
+        mode: 'javascript',
+        theme: 'monokai',
+        lineNumbers: true,
+        autoCloseBrackets: true,
+        matchBrackets: true
+      });
+
+      cell.editor = editor;
+    }
+
+    function createTextCell() {
+      const cellId = `cell-${++cellCounter}`;
+      const cell = document.createElement('div');
+      cell.classList.add('cell', 'text-cell');
+      cell.id = cellId;
+      cell.innerHTML = `
+        <div class="cell-buttons">
+          <button onclick="toggleMarkdown('${cellId}')">Toggle Markdown</button>
+          <button onclick="minimizeCell('${cellId}')">&#9660;</button>
+          <button onclick="deleteCell('${cellId}')">Delete</button>
+        </div>
+        <textarea class="markdown-editor"></textarea>
+        <div class="markdown-render minimized"></div>
+      `;
+      notebook.appendChild(cell);
+    }
+
+    function runCode(cellId) {
+      const cell = document.getElementById(cellId);
+      const output = cell.querySelector('.output');
+      output.innerHTML = '';
+
+      const cleanup = redirectConsole(output);
+      try {
+        const code = cell.editor.getValue();
+        new Function(code)();
+      } catch (err) {
+        console.error(err.message);
+      }
+      cleanup();
+    }
+
+    function redirectConsole(output) {
+      const originalLog = console.log;
+      const originalError = console.error;
+
+      console.log = (...args) => {
+        const msg = document.createElement('div');
+        msg.textContent = args.join(' ');
+        output.appendChild(msg);
+      };
+
+      console.error = (...args) => {
+        const msg = document.createElement('div');
+        msg.style.color = 'red';
+        msg.textContent = args.join(' ');
+        output.appendChild(msg);
+      };
+
+      return () => {
+        console.log = originalLog;
+        console.error = originalError;
+      };
+    }
+
+    function toggleMarkdown(cellId) {
+      const cell = document.getElementById(cellId);
+      const editor = cell.querySelector('.markdown-editor');
+      const render = cell.querySelector('.markdown-render');
+
+      if (render.classList.contains('minimized')) {
+        render.innerHTML = marked(editor.value);
+        editor.classList.add('minimized');
+        render.classList.remove('minimized');
+      } else {
+        editor.classList.remove('minimized');
+        render.classList.add('minimized');
+      }
+    }
+
+    function minimizeCell(cellId) {
+      const cell = document.getElementById(cellId);
+      cell.classList.toggle('minimized');
+    }
+
+    function deleteCell(cellId) {
+      const cell = document.getElementById(cellId);
+      cell.remove();
+    }
+
+    function downloadNotebook() {
+      const title = document.getElementById('notebook-title').value;
+      const content = { title, cells: [] };
+
+      notebook.querySelectorAll('.cell').forEach(cell => {
+        if (cell.classList.contains('code-cell')) {
+          content.cells.push({ type: 'code', content: cell.editor.getValue() });
+        } else if (cell.classList.contains('text-cell')) {
+          const markdown = cell.querySelector('.markdown-editor').value;
+          content.cells.push({ type: 'text', content: markdown });
+        }
+      });
+
+      const blob = new Blob([JSON.stringify(content, null, 2)], { type: 'application/json' });
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.download = `${title || 'notebook'}.json`;
+      link.click();
+    }
+
+    function uploadNotebook(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = e => {
+        const content = JSON.parse(e.target.result);
+        document.getElementById('notebook-title').value = content.title || 'Untitled Notebook';
+
+        notebook.innerHTML = '';
+        content.cells.forEach(cell => {
+          if (cell.type === 'code') {
+            createCodeCell();
+            notebook.lastChild.editor.setValue(cell.content);
+          } else if (cell.type === 'text') {
+            createTextCell();
+            notebook.lastChild.querySelector('.markdown-editor').value = cell.content;
+          }
+        });
+      };
+
+      reader.readAsText(file);
+    }
+
+    document.getElementById('add-code').addEventListener('click', createCodeCell);
+    document.getElementById('add-text').addEventListener('click', createTextCell);
+    document.getElementById('download-notebook').addEventListener('click', downloadNotebook);
+    document.getElementById('upload-trigger').addEventListener('click', () => document.getElementById('upload-notebook').click());
+    document.getElementById('upload-notebook').addEventListener('change', uploadNotebook);
+  </script>
+</body>
+</html>

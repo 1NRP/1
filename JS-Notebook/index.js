@@ -1,4 +1,5 @@
-//first editor cell
+//first editor cell.
+/*
 const editor = CodeMirror(document.getElementById('div-1'), {
     lineNumbers: true,
     tabSize: 4,
@@ -9,6 +10,32 @@ const editor = CodeMirror(document.getElementById('div-1'), {
     autoCloseBrackets: true,
     matchBrackets: true
 });
+*/
+const editor = CodeMirror(document.getElementById('div-1'), {
+    mode: 'javascript',
+    theme: 'monokai',
+    value: '',
+    autoCloseBrackets: true,
+    matchBrackets: true,
+    lineNumbers: false,
+    extraKeys: {
+      "Enter": function(cm) {
+        var completion = cm.state.completionActive;
+        if (completion) {
+          completion.pick();
+        } else {
+          cm.execCommand("newlineAndIndent");
+        }
+      }
+    }
+  });
+  
+  // Show autocompletion on typing automatically
+  editor.on('keyup', function(cm, event) {
+    if (!cm.state.completionActive && event.keyCode !== 13) {
+      cm.showHint({completeSingle: false});
+    }
+  });
 
 //Run first cell on CTRL ENTER Pressed
 $(`#div-1`).keydown(function (e) {
@@ -24,7 +51,7 @@ $("#div-1")
         $("#btn-actions-1").show()
     })
     .mouseout(function () {
-        $("#btn-actions-1").hide()
+        $("#btn-actions-1").show()
     });
 
 
@@ -38,12 +65,12 @@ var md_texts = {} //stores markdown text and corresponding div name
 var __code_cell_count = 1 //stores cell count
 
 
-
 /**
  * Executes a code cell
+ * @async
  * @param {String} c_id Id of the code cell
- */
-function exec_cell(c_id) {
+ */   /*
+async function exec_cell(c_id) {
     let id = c_id.split("_")[1]
     let count = c_id.split("-")[1]
     window.current_cell = id;
@@ -96,6 +123,66 @@ function exec_cell(c_id) {
         console.log(error)
 
     }
+
+}
+*/
+
+/**
+ * Executes a code cell asynchronously
+ * @async
+ * @param {String} c_id Id of the code cell
+ */
+async function exec_cell(c_id) {
+    let id = c_id.split("_")[1];
+    let count = c_id.split("-")[1];
+    window.current_cell = id;
+    $(`#out_${id}`).html("");
+
+    try {
+        // Get the user provided code
+        let command = vars_in_scope[id].getValue();
+
+        // Check if the user code contains async code
+        if (command.includes("await")) {
+            // Directly evaluate the code with async handling
+            let output = await eval(command);
+            // Handle output formatting
+            output = formatOutput(output);
+            $(`#out_${id}`).html(output);
+        } else {
+            // Sync code evaluation
+            let output = eval(command);
+            output = formatOutput(output);
+            $(`#out_${id}`).html(output);
+        }
+
+        // Update count for next cell
+        count = parseInt(count) + 1;
+        let div_count = `div-${count}`;
+        window.current_cell = div_count;
+    } catch (error) {
+        // Error handling
+        $(`#out_${id}`).html("");
+        $(`#out_${id}`).html(error);
+        console.log(error);
+    }
+}
+
+/**
+ * Helper function to format output
+ * @param {*} output The output from code evaluation
+ * @returns {string} The formatted output
+ */
+function formatOutput(output) {
+    if (Array.isArray(output)) {
+        return print_val(output);
+    } else if (typeof output === 'object' && output !== null) {
+        output = JSON.stringify(output);
+        if (output === "{}") {
+            output = "";
+        }
+    }
+    return output;
 }
 
 
@@ -187,7 +274,7 @@ function add_new_code_cell(c_id, where) {
             $(`#btn-actions-${new_id}`).show()
         })
         .mouseout(function () {
-            $(`#btn-actions-${new_id}`).hide()
+            $(`#btn-actions-${new_id}`).show()
         });
 
 
