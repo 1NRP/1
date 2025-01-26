@@ -146,6 +146,20 @@
       }
       cleanup();
     }
+    async function runCode(cellId) {
+      const cell = document.getElementById(cellId);
+      const output = cell.querySelector('.output');
+      output.innerHTML = '';
+
+      const cleanup = redirectConsole(output);
+      try {
+        const code = cell.editor.getValue();
+        await new Function(`return (async () => { ${code} })()`)();
+      } catch (err) {
+        console.error(err.message);
+      }
+      cleanup();
+    }
 
     function redirectConsole(output) {
       const originalLog = console.log;
