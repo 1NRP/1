@@ -43,14 +43,6 @@
       height: auto;
       border-radius: 5px;
     }
-    .CodeMirror {
-      border: 2px solid #34a054;
-      border-radius: 4px;
-      height: 40px;
-      text-wrap: wrap;
-      width: 100%;
-      background-color: #397ba720;
-    }
     .code-cell, .text-cell {
       position: relative;
       border: 2px solid #2e633540;
@@ -99,7 +91,7 @@
       background-color: #40000040;
     }
     .minimized {
-      max-height: 10px;
+      max-height: 40px;
     }
     .markdown-render {
       padding: 10px;
@@ -247,7 +239,11 @@
 
     function minimizeCell(cellId) {
       const cell = document.getElementById(cellId);
-      cell.classList.toggle('minimized');
+      const codeMirrorCells = document.getElementsByClassName('CodeMirror');
+      for (let i = 0; i < codeMirrorCells.length; i++) {
+          codeMirrorCells[i].classList.toggle('minimized');
+      }
+     cell.classList.toggle('minimized');
     }
 
     function deleteCell(cellId) {
