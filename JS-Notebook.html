@@ -9,13 +9,11 @@
     body {
       font-family: Arial, sans-serif;
       margin: 0;
+      background-color: #0d203040;
       padding: 0;
     }
     .toolbar {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 10px;
+      padding: 4px;
       background-color: #00200020;
       border-bottom: 2px solid #34a054;
     }
@@ -27,20 +25,31 @@
       padding: 5px;
     }
     .toolbar button {
-      padding: 5px 10px;
+      padding: 2px 6px;
       font-size: 14px;
+      font-weight: 600;
       border-radius: 5px;
       background-color: #00400040;
       border: 2px solid #34a054;
     }
     .toolbar button:hover {
-      background-color: #236997;
+      background-color: #23974060;
     }
     .cell {
       border: 1px solid #ccc;
-      margin: 10px;
-      padding: 10px;
+      margin: 2px;
+      padding: 2px;
+      width: 97.2vw;
+      height: auto;
       border-radius: 5px;
+    }
+    .CodeMirror {
+      border: 2px solid #34a054;
+      border-radius: 4px;
+      height: 40px;
+      text-wrap: wrap;
+      width: 100%;
+      background-color: #397ba720;
     }
     .code-cell, .text-cell {
       position: relative;
@@ -50,12 +59,16 @@
     }
     .cell-buttons {
       position: absolute;
-      top: 5px;
-      right: 10px;
+      top: 2px;
+      right: 4px;
       display: flex;
-      gap: 5px;
-      margin: 10px 0px;
+      gap: 25px;
+      opacity: 0.1;
+      margin: 4px 0px;
       z-index: 100;
+    }
+    .cell-buttons:hover {
+     opacity: 1;
     }
     .cell-buttons button {
       background-color: #4c8fb6b0;
@@ -67,25 +80,22 @@
       background-color: #444;
     }
     .output {
-      margin-top: 4px;
-      background: #f9f9f9;
-      padding: 4px;
-      min-height: 10px;
-      border: 1px solid #adad51b0;
-      border-radius: 4px;
       overflow-y: visible;
+      width: 98%;
     }
     .logDiv {
-      color: #ddd;
-      border: 1px solid #00d;
+      font-family: 'Times New Roman', Times, sans-serif;
+      border-top: 1px solid #33558880;
       padding: 4px;
-      border-bottom: none;
-      background-color: #00004040;
+      width: 100%;
+      margin: 4px 0px;
+      background-color: #02103020;
     }
     .errorDiv {
       color: #ddd;
       border: 1px solid #d00;
       padding: 4px;
+      margin: 4px 0px;
       background-color: #40000040;
     }
     .minimized {
@@ -98,48 +108,31 @@
       border-radius: 5px;
     }
   </style>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.7/codemirror.min.css">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.7/theme/monokai.min.css">
+  <link rel="stylesheet" href="CodeMirror.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/theme/rubyblue.min.css">
 </head>
 <body>
   <div class="toolbar">
-    <input id="notebook-title" placeholder="Untitled Notebook" value="Untitled Notebook">
+    <input style="display:none; margin:0px 0px 4px 0px;" id="notebook-title" placeholder="Untitled Notebook" value="Untitled Notebook">
     <div>
-      <button id="add-code">+ CODE</button>
-      <button id="add-text">+ TEXT</button>
-      <button id="download-notebook">Download</button>
+      <button id="add-code" style="padding: 3px 6px">+ CODE</button>
+      <button id="add-text" style="padding: 3px 6px">+ TEXT</button>
+      <button id="download-notebook">▼ LOAD</button>
       <input id="upload-notebook" type="file" style="display: none;">
-      <button id="upload-trigger">Upload</button>
+      <button id="upload-trigger">▲ LOAD</button>
+      <button style="margin:0px 0px 0px 10px" id="move-down">▼</button>
+      <button id="move-up" onclick="">▲</button>
     </div>
   </div>
   <div id="notebook"></div>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.7/codemirror.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.7/mode/javascript/javascript.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/codemirror.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/mode/javascript/javascript.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+
   <script>
-    /*
-    const editor = CodeMirror(document.getElementById('notebook'), {
-    mode: 'javascript',
-    theme: 'monokai',
-    value: '',
-    autoCloseBrackets: true,
-    matchBrackets: true,
-    lineNumbers: false,
-    extraKeys: {
-      "Enter": function(cm) {
-        var completion = cm.state.completionActive;
-        if (completion) {
-          completion.pick();
-        } else {
-          cm.execCommand("newlineAndIndent");
-        }
-      }
-    }
-  });
-*/
+    // CodeMirror settings.
     let cellCounter = 0;
     const notebook = document.getElementById('notebook');
-
     function createCodeCell() {
       const cellId = `cell-${++cellCounter}`;
       const cell = document.createElement('div');
@@ -158,8 +151,8 @@
 
       const editor = CodeMirror.fromTextArea(cell.querySelector('.code-editor'), {
         mode: 'javascript',
-        theme: 'monokai',
-        lineNumbers: true,
+        theme: 'rubyblue',
+        lineNumbers: false,
         autoCloseBrackets: true,
         matchBrackets: true
       });

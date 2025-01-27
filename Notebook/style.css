@@ -20,16 +20,6 @@ a {
   margin-left: 40px;
 }
 
-.CodeMirror {
-  border: 1px solid #eee;
-  height: auto;
-  padding: 10px;
-}
-
-.mdCell {
-  height: auto;
-}
-
 .out-divs{
   height: auto;
 }
