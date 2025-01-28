@@ -12,11 +12,6 @@
       background-color: #0d203040;
       padding: 0;
     }
-    input:focus,  /* Remove Focused element's border outline. */
-    select:focus,
-    textarea:focus {
-      outline:0
-    }
     .toolbar {
       padding: 4px;
       background-color: #00200020;
@@ -41,33 +36,18 @@
       background-color: #23974060;
     }
     .cell {
-      border: none;
+      border: 1px solid #ccc;
       margin: 2px;
       padding: 2px;
-      width: 97%;
+      width: 97.2vw;
       height: auto;
       border-radius: 5px;
-    }
-    .code-editor {
-      font-family: 'Times New Roman', Times, serif;
-      height: 100%;
-      width: 99.4%;
-      border-radius: 4px;
-      resize: none;
-      color: #fffbbbdd;
-      direction: ltr;
-      text-wrap: wrap;
-      overflow-y: hidden;
-      background-color: #397ba720;
-      border: none;
-      min-height: 40px;
     }
     .code-cell, .text-cell {
       position: relative;
       border: 2px solid #2e633540;
       border-radius: 4px;
-      overflow-y: visible;
-      min-height: 40px;
+      background-color: #397ba720;
     }
     .cell-buttons {
       position: absolute;
@@ -75,17 +55,17 @@
       right: 4px;
       display: flex;
       gap: 25px;
+      opacity: 0.1;
       margin: 4px 0px;
-      z-index: 20;
+      z-index: 100;
     }
-    .cell-buttons button:hover {
+    .cell-buttons:hover {
      opacity: 1;
     }
     .cell-buttons button {
       background-color: #4c8fb6b0;
       border: 2px solid #2e6335;
       padding: 6px;
-      opacity: 0.1;
       border-radius: 4px;
     }
     .cell-buttons button:hover {
@@ -100,8 +80,6 @@
       border-top: 1px solid #33558880;
       padding: 4px;
       width: 100%;
-      font-size: 14px;
-      text-wrap: wrap;
       margin: 4px 0px;
       background-color: #02103020;
     }
@@ -121,86 +99,56 @@
       border: 1px dashed #ccc;
       border-radius: 5px;
     }
-    .Alerts {
-      position: fixed;
-    /* top: 5dvh; */
-      left: 20dvw;
-      z-index: 50;
-      background-color: #fff;
-      color: #000;
-      font-weight: 1000;
-      padding: 5px;
-      border: none;
-      border-radius: 5px;
-      animation-name: Alert;
-      animation-duration: 1s;
-    }
-    /* Animations */
-    @keyframes Alert {
-      from {font-size: 5px; top: 0dvh} /* transform: rotate(30deg)} */
-      to {font-size: 20px; top: 10dvh}  /* transform: rotate(0deg)} */
-    }
-
-</style>
+  </style>
+  <link rel="stylesheet" href="CodeMirror.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/theme/rubyblue.min.css">
 </head>
 <body>
   <div class="toolbar">
     <input style="display:none; margin:0px 0px 4px 0px;" id="notebook-title" placeholder="Untitled Notebook" value="Untitled Notebook">
     <div>
       <button id="add-code" style="padding: 3px 6px">+ CODE</button>
-      <button id="add-text" style="padding: 3px 6px" onclick="showNotebookList(); document.getElementById('notebook-title').style.display = (document.getElementById('notebook-title').style.display == 'none') ? 'block' : 'none';">+ TEXT</button>
+      <button id="add-text" style="padding: 3px 6px">+ TEXT</button>
       <button id="download-notebook">▼ LOAD</button>
       <input id="upload-notebook" type="file" style="display: none;">
       <button id="upload-trigger">▲ LOAD</button>
-      <button style="margin:0px 0px 0px 10px" onclick="setLocal()" id="move-down">▼</button>
-      <button id="move-up" onclick="getLocal()">▲</button>
+      <button style="margin:0px 0px 0px 10px" id="move-down">▼</button>
+      <button id="move-up" onclick="">▲</button>
     </div>
   </div>
   <div id="notebook"></div>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/codemirror.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/mode/javascript/javascript.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 
   <script>
-document.addEventListener('input', (event) => {
-  if (event.target.classList.contains('code-editor')) {
-    adjustTextareaHeight(event.target);
-  }
-});
-function adjustTextareaHeight(textarea) {
-  textarea.style.height = 'auto'; // Reset the height.
-  textarea.style.height = `${textarea.scrollHeight}px`; // Set height based on content.
-}
-  // Show Alert Function.
-function showAlert({ BgColor = '#fff', Text = 'Alert' } = {}) {
-    var alertBox = document.createElement('div');
-    alertBox.className = 'Alerts';
-    alertBox.style.backgroundColor = BgColor;
-    alertBox.textContent = Text;
-    document.body.appendChild(alertBox);
-    setTimeout(() => { 
-        alertBox.remove(); 
-    }, 1000);
-  }
-  
-    // Editor settings.
+    // CodeMirror settings.
     let cellCounter = 0;
-    let textCounter = 0;
     const notebook = document.getElementById('notebook');
     function createCodeCell() {
       const cellId = `cell-${++cellCounter}`;
-      const textId = `text-${++textCounter}`;
       const cell = document.createElement('div');
       cell.classList.add('cell', 'code-cell');
       cell.id = cellId;
       cell.innerHTML = `
         <div class="cell-buttons">
           <button onclick="runCode('${cellId}')">⚙️</button>
-          <button onclick="minimizeCell('${cellId}', '${textId}')">▶️</button>
+          <button onclick="minimizeCell('${cellId}')">▶️</button>
           <button onclick="deleteCell('${cellId}')">❌</button>
         </div>
-        <textarea id="${textId}" class="code-editor" spellcheck=false></textarea>
+        <textarea class="code-editor"></textarea>
         <div class="output"></div>
       `;
       notebook.appendChild(cell);
-      const editor = cell.querySelector('.code-editor');
+
+      const editor = CodeMirror.fromTextArea(cell.querySelector('.code-editor'), {
+        mode: 'javascript',
+        theme: 'rubyblue',
+        lineNumbers: false,
+        autoCloseBrackets: true,
+        matchBrackets: true
+      });
+
       cell.editor = editor;
     }
 
@@ -228,7 +176,7 @@ function showAlert({ BgColor = '#fff', Text = 'Alert' } = {}) {
 
       const cleanup = redirectConsole(output);
       try {
-        const code = cell.editor.value;
+        const code = cell.editor.getValue();
         new Function(code)();
       } catch (err) {
         console.error(err.message);
@@ -242,7 +190,7 @@ function showAlert({ BgColor = '#fff', Text = 'Alert' } = {}) {
 
       const cleanup = redirectConsole(output);
       try {
-        const code = cell.editor.value;
+        const code = cell.editor.getValue();
         await new Function(`return (async () => { ${code} })()`)();
       } catch (err) {
         console.error(err.message);
@@ -289,11 +237,13 @@ function showAlert({ BgColor = '#fff', Text = 'Alert' } = {}) {
       }
     }
 
-    function minimizeCell(cellId, textId) {
+    function minimizeCell(cellId) {
       const cell = document.getElementById(cellId);
-      const text = document.getElementById(textId);
-      text.classList.toggle('minimized');
-      cell.classList.toggle('minimized');
+      const codeMirrorCells = document.getElementsByClassName('CodeMirror');
+      for (let i = 0; i < codeMirrorCells.length; i++) {
+          codeMirrorCells[i].classList.toggle('minimized');
+      }
+     cell.classList.toggle('minimized');
     }
 
     function deleteCell(cellId) {
@@ -301,96 +251,35 @@ function showAlert({ BgColor = '#fff', Text = 'Alert' } = {}) {
       cell.remove();
     }
 
-function setLocal() {
-  const title = document.getElementById('notebook-title').value.trim();
-  if (!title || title == 'Untitled Notebook') {
-    alert('Please give a Title to the Notebook.');
-    return;
-  }
-  const content = { title, cells: [] };
-  notebook.querySelectorAll('.cell').forEach(cell => {
-    if (cell.classList.contains('code-cell')) {
-      content.cells.push({ type: 'code', content: cell.editor?.value || '' });
-    } else if (cell.classList.contains('text-cell')) {
-      const markdown = cell.querySelector('.markdown-editor')?.value || '';
-      content.cells.push({ type: 'text', content: markdown });
-    }
-  });
-  try {
-    localStorage.setItem(`JSNB-${title}`, JSON.stringify(content));
-    showAlert({ BgColor: '#1bd13d', Text: '✔ Notebook Saved'});
-  } catch (error) {
-    showAlert({ BgColor: '#f2074e', Text: '✖ Saving Failed'});
-  }
-}
-
-    function showNotebookList() {
-      createCodeCell();
-      const showListsCode = `
-      for (let i = 0; i < localStorage.length; i++) {
-        let key = localStorage.key(i);
-        if (key.startsWith('JSNB')) {
-            console.log(key);
-          }
-        } ` ;
-      notebook.lastChild.editor.value = showListsCode;
-    }
-
-function getLocal() {
-  const notebookName = document.getElementById('notebook-title').value.trim();
-  if (!notebookName) {
-    alert('Please enter a notebook title.');
-    return;
-  }
-  const localNote = localStorage.getItem(notebookName);
-  if (localNote) {
-    const content = JSON.parse(localNote); // Parse the local storage string into JSON
-    document.getElementById('notebook-title').value = content.title; // Optional: confirm if overwriting is intended
-    notebook.innerHTML = ''; // Clear the notebook content.
-    content.cells.forEach(cell => {
-      if (cell.type === 'code') {
-        createCodeCell();
-        if (notebook.lastChild && notebook.lastChild.editor) {
-          notebook.lastChild.editor.value = cell.content; // Set the content of the code cell
-        }
-      } else if (cell.type === 'text') {
-        createTextCell();
-        const markdownEditor = notebook.lastChild?.querySelector('.markdown-editor');
-        if (markdownEditor) {
-          markdownEditor.value = cell.content; // Set the content of the text cell
-        }
-      }
-    });
-  } else {
-    alert('Notebook not found in Local Storage.');
-  }
-}
-    
     function downloadNotebook() {
       const title = document.getElementById('notebook-title').value;
       const content = { title, cells: [] };
+
       notebook.querySelectorAll('.cell').forEach(cell => {
         if (cell.classList.contains('code-cell')) {
-          content.cells.push({ type: 'code', content: cell.editor.value });
+          content.cells.push({ type: 'code', content: cell.editor.getValue() });
         } else if (cell.classList.contains('text-cell')) {
           const markdown = cell.querySelector('.markdown-editor').value;
           content.cells.push({ type: 'text', content: markdown });
         }
       });
+
       const blob = new Blob([JSON.stringify(content, null, 2)], { type: 'application/json' });
       const link = document.createElement('a');
       link.href = URL.createObjectURL(blob);
-      link.download = `JSNB-${title || 'Untitled Notebook'}.json`;
+      link.download = `JSNB-${title || 'Notebook'}.json`;
       link.click();
     }
 
     function uploadNotebook(event) {
       const file = event.target.files[0];
       if (!file) return;
+
       const reader = new FileReader();
       reader.onload = e => {
         const content = JSON.parse(e.target.result);
         document.getElementById('notebook-title').value = content.title || 'Untitled Notebook';
+
         notebook.innerHTML = '';
         content.cells.forEach(cell => {
           if (cell.type === 'code') {

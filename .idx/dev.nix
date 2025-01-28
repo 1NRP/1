@@ -14,7 +14,7 @@
         command = [
           "npm"
           "run"
-          "preview"
+          "serve"
           "-p"
           #"--"
           #"--port"
