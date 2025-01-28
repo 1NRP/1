@@ -75,21 +75,16 @@
       right: 4px;
       display: flex;
       gap: 25px;
-      margin: 4px 0px;
       z-index: 20;
-    }
-    .cell-buttons button:hover {
-     opacity: 1;
-    }
-    .cell-buttons button {
-      background-color: #4c8fb6b0;
-      border: 2px solid #2e6335;
+      background-color: #4c8fb680;
+      border: 2px solid #157c23;
       padding: 6px;
       opacity: 0.1;
       border-radius: 4px;
     }
-    .cell-buttons button:hover {
+    .cell-buttons:hover {
       background-color: #444;
+      opacity: 1;
     }
     .output {
       overflow-y: visible;
@@ -191,11 +186,10 @@ function showAlert({ BgColor = '#fff', Text = 'Alert' } = {}) {
       cell.classList.add('cell', 'code-cell');
       cell.id = cellId;
       cell.innerHTML = `
-        <div class="cell-buttons">
-          <button onclick="runCode('${cellId}')">⚙️</button>
-          <button onclick="minimizeCell('${cellId}', '${textId}')">▶️</button>
-          <button onclick="deleteCell('${cellId}')">❌</button>
-        </div>
+        <button class="cell-buttons" style="margin:0px 120px 0px 0px" onclick="runCode('${cellId}')">⚙️</button>
+        <button class="cell-buttons" style="margin:0px 60px 0px 0px" onclick="minimizeCell('${cellId}', '${textId}')">▶️</button>
+        <button class="cell-buttons" onclick="deleteCell('${cellId}')">❌</button>
+
         <textarea id="${textId}" class="code-editor" spellcheck=false></textarea>
         <div class="output"></div>
       `;
