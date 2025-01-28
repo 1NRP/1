@@ -43,22 +43,20 @@
     .cell {
       border: none;
       margin: 2px;
-      padding: 2px;
       width: 97%;
       height: auto;
-      border-radius: 5px;
+      border-radius: 4px;
     }
     .code-editor {
-      font-family: 'Times New Roman', Times, serif;
       height: 100%;
-      width: 99.4%;
+      width: 100%;
       border-radius: 4px;
       resize: none;
-      color: #fffbbbdd;
+      color: #eee;
       direction: ltr;
       text-wrap: wrap;
       overflow-y: hidden;
-      background-color: #397ba720;
+      background-color: #397bd840;
       border: none;
       min-height: 40px;
     }
@@ -76,6 +74,7 @@
       display: flex;
       gap: 25px;
       z-index: 20;
+      margin-top: 6px;
       background-color: #4c8fb680;
       border: 2px solid #157c23;
       padding: 6px;
@@ -336,7 +335,7 @@ function getLocal() {
     alert('Please enter a notebook title.');
     return;
   }
-  const localNote = localStorage.getItem(notebookName);
+  const localNote = localStorage.getItem(`JSNB-${notebookName}`);
   if (localNote) {
     const content = JSON.parse(localNote); // Parse the local storage string into JSON
     document.getElementById('notebook-title').value = content.title; // Optional: confirm if overwriting is intended
@@ -389,7 +388,7 @@ function getLocal() {
         content.cells.forEach(cell => {
           if (cell.type === 'code') {
             createCodeCell();
-            notebook.lastChild.editor.setValue(cell.content);
+            notebook.lastChild.editor.value = cell.content;
           } else if (cell.type === 'text') {
             createTextCell();
             notebook.lastChild.querySelector('.markdown-editor').value = cell.content;
