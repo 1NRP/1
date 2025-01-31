@@ -17,7 +17,7 @@ body {
   flex-direction:row;
   border:2px dashed #358;
   width:99%;
-  height:5dvh;
+  height:5vh;
 }
 #txtBox {
   border:none;
@@ -46,7 +46,7 @@ body {
 }
 #viewBox {
       width: 99%;
-      height: 90dvh;
+      height: 90vh;
       border-radius: 4px;
       border: 2px solid #333;
       overflow-y: scroll;
@@ -85,8 +85,8 @@ var start = +parts[0], end = +parts[1]; // The Unary '+' operator is shorthand f
 if (range === '') {
    alert('Please Specify The Range First.');
    return;
-} else if (end-start > 20) {
-  alert('Range should be less than 20. It is useful for ensuring less bandwidth usage during the Thumbnail Fetching process.'); 
+} else if (end-start > 50) {
+  alert('Range should be less than 50. It is useful for ensuring less bandwidth usage during the Thumbnail Fetching process.'); 
   return; // "return" would exit the function. 
 }
 var response = await fetch("https://srbo3gia676hprqy.public.blob.vercel-storage.com/KV-Store-Saved-TB-Link-Thumbnails.json");
