@@ -49,14 +49,14 @@
     }
     .code-editor {
       height: 100%;
-      width: 100%;
+      width: 99%;
       border-radius: 4px;
       resize: none;
       color: #eee;
       direction: ltr;
       text-wrap: wrap;
       overflow-y: hidden;
-      background-color: #397bd840;
+      background-color: #1759d840;
       border: none;
       min-height: 40px;
     }
@@ -78,7 +78,7 @@
       background-color: #4c8fb680;
       border: 2px solid #157c23;
       padding: 6px;
-      opacity: 0.1;
+      opacity: 0.2;
       border-radius: 4px;
     }
     .cell-buttons:hover {
@@ -250,7 +250,7 @@ function showAlert({ BgColor = '#fff', Text = 'Alert' } = {}) {
       console.log = (...args) => {
         const msg = document.createElement('div');
         msg.className = 'logDiv';
-        msg.textContent = '» ' + args.join('');
+        msg.textContent = args.join(''); // '» ' + 
         output.appendChild(msg);
       };
 
