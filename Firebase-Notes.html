@@ -10,7 +10,7 @@
 <style>
 body {
     color: #fff;
-    background-color: #000;
+    background-color: #02121b;
 }
 input:focus,
 textarea,
@@ -151,7 +151,7 @@ a4 { color: #d88; font-weight: 600 }
 }
 ::placeholder { font-weight: 600 }
 #form-container button { 
-    width: 99%; 
+    width: 94%; 
     padding: 10px;
     border: 2px solid #ddd;
     font-weight: 600;
@@ -180,7 +180,6 @@ a4 { color: #d88; font-weight: 600 }
           <input type="text" placeholder="Enter Email" id="userId" required> 
           <input type="password" placeholder="Enter Password" id="password" required> 
           <button type="submit">SUBMIT</button>
-          <br><a4>Enable Offline Support ?</a4><input type="checkbox" name="check" id="device-type" style="margin: 20px 0px 0px 15px; transform: translateY(3px)">
         </form>
      </div>
 
@@ -198,28 +197,16 @@ a4 { color: #d88; font-weight: 600 }
     </select>
 </div>
     <button id="logout" style="background-color: #d41818; position: fixed; top: 40vh; left: 32vw; font-weight: 600; font-size: 20px; padding: 20px; display: none; border-radius: 50px; box-shadow: 8px 8px 6px #c44b4b; border: none; border-radius: 6px;" onclick="logout()">LOG OUT</button>
-    <textarea id="textBox" spellcheck="false" autocomplete="off" translate="no"></textarea> 
+    <textarea id="textBox" onclick="pasteLineText()" spellcheck="false" autocomplete="off" translate="no"></textarea> 
     <button id="deleteButton" onclick="deleteNote()">DELETE</button>
     <button id="clearButton" onclick="document.getElementById('textBox').value=''">✖</button>
     <button id="saveButton" onclick="saveNote()">SAVE</button>
     <button id="getButton" onclick="getNotes()">VIEW</button>
     <textarea id="deleteBox" spellcheck="false" autocomplete="off" translate="no"></textarea>
 
-<script src="script.js" type="module">
+<script src="firebaseFunctions.js"></script>
 
-/*
-// Button click Event-Listeners.
-document.getElementById('saveButton').onclick = saveNote;
-document.getElementById('getButton').onclick = getNotes;
-document.getElementById('deleteButton').onclick = deleteNote;
-document.getElementById('textBox').onclick = pasteLineText;
-document.getElementById('logout').onclick = logout;
-document.getElementById('loginStatus').onclick = showLogin;
-
-// Import necessary functions from Firebase SDKs.
-import { initializeApp, getApps, deleteApp } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-app.js";
-import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-auth.js";
-import { getFirestore, collection as myCollection, query ,onSnapshot, doc, getDoc, arrayUnion, arrayRemove, updateDoc, initializeFirestore, persistentLocalCache, persistentMultipleTabManager, clearIndexedDbPersistence, waitForPendingWrites, terminate } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-firestore.js";
+<script>
 
 const firebaseConfig = { apiKey: "AIzaSyAwh2IXpNUCL2JHuTLKfc8FZDDd62g4j74", authDomain: "nrp888.firebaseapp.com", projectId: "nrp888", storageBucket: "nrp888.firebasestorage.app", messagingSenderId: "876054763342", appId: "1:876054763342:web:fddead6f7db3f8ebcff01f" };
 const app = initializeApp(firebaseConfig);
@@ -228,13 +215,9 @@ const app = initializeApp(firebaseConfig);
 let dataBaseRef;
 function initFirestore() {
 if (loggedIn) {
-  if (localStorage.getItem("FirestorePersistence") === "Enabled") {
-    dataBaseRef = initializeFirestore(app, { localCache: persistentLocalCache({ tabManager: persistentMultipleTabManager() }) })
-    console.log('Firestore initialized with persistentLocalCache.');
+    dataBaseRef = getFirestore(app)
+    console.log('Firestore initialized.');
   } else {
-    dataBaseRef = getFirestore(app);
-  }
-} else {
   showAlert({ BgColor: '#e8af05', Text: '⚠ Not Logged In'});
   console.log("Could not initialize Firestore because User is not logged in yet.");
   }
@@ -252,8 +235,7 @@ function showLogin() {
         event.preventDefault();
         const userId = document.getElementById('userId').value;
         const userPassword = document.getElementById('password').value;
-        let offlineSupport = document.getElementById('device-type').checked;
-        login(userId, userPassword, offlineSupport);
+        login(userId, userPassword);
       });
       // Mark form as having an event listener.
       form.hasListener = true;
@@ -265,7 +247,7 @@ function showLogin() {
 }
 
 // Enable Offline Persistence if Trusted Device while logging in.
-function login(email, password, offlineSupport) {
+function login(email, password) {
   const auth = getAuth();
   signInWithEmailAndPassword(auth, email, password)
     .then((userCredential) => {
@@ -278,30 +260,6 @@ function login(email, password, offlineSupport) {
     .catch((error) => {
       alert(error.message);
     });
-  if (offlineSupport) {
-    localStorage.setItem("FirestorePersistence", "Enabled");
-    dataBaseRef = initializeFirestore(app, { localCache: persistentLocalCache({ tabManager: persistentMultipleTabManager() }) })
-    console.log('Firestore initialized with IndexedDB caching for offline support and multiple tab offline persistence.');
-    activateOnSnapshot();
-  } else {
-    localStorage.setItem("FirestorePersistence", "Disabled");
-    dataBaseRef = getFirestore(app);
-    activateOnSnapshot();
-    console.log('Firestore initialized with default configuration.');
-  }
-}
-
-// 'onSnapshot' Realtime Request Listener.
-function activateOnSnapshot() {
-  if (dataBaseRef !== undefined && dataBaseRef !== null) {
-    const responseFrom = query(myCollection(dataBaseRef, "Notes_Collection"));
-    onSnapshot(responseFrom, {includeMetadataChanges: true}, (snapshot) => {
-      const source = snapshot.metadata.fromCache ? "Cache" : "Server";  // 'isFromCache' returns true if the snapshot was created from cached data rather than guaranteed up-to-date server data. If your listener has opted into metadata updates (via INCLUDE) you will receive another snapshot with isFromCache() equal to false once the client has received up-to-date data from the backend.
-      const sign = source === "Cache" ? "⚠" : "✔";
-      const colour = source === "Cache" ? "#e8af05" : "#1bd13d";
-      showAlert({ BgColor: `${colour}`, Text: `${sign} ${source}` });
-    });
-  };
 }
 
 // Check login status.
@@ -326,30 +284,22 @@ loginStat();  // Run at Page Load.
 // Logout and clear IndexedDB and entire Firebase instance.
 function logout() {
   if (loggedIn) {
-  waitForPendingWrites(dataBaseRef)
-  .then(() => {
-    terminate(dataBaseRef);
-  }) .catch((error) => { alert('Could Not Sync Pending Writes With Server.'); })
-
   const auth = getAuth();
   signOut(auth)
   .then(() => {
     loggedIn = false;
     showAlert({ BgColor: '#f2074e', Text: '✖ Logged Out'});
-    document.getElementById('logout').style.display = 'none'; })
+    document.getElementById('logout').style.display = 'none';
+  })
   .catch((error) => {
     showAlert({ BgColor: '#e8af05', Text: '⚠ Error Logging Out'});
   });
   // Clear FirebaseApp instance and all functionalities (e.g. IndexedDB cache, Firestore, auth etc.) after 1.5 seconds of logging out.
   setTimeout(() => {
-  if (localStorage.getItem("FirestorePersistence") === "Enabled") {
-  clearIndexedDbPersistence(dataBaseRef) 
-    .then(() => { console.log("IndexedDB Cleared Successfully."); })
-    .catch((error) => { alert('Failed To Clear IndexedDB.'); })
-  }
   deleteApp(app)
     .then(() => {
-      showAlert({ BgColor: '#1bd13d', Text: '✔ FirebaseApp Cleared'}); })
+      showAlert({ BgColor: '#1bd13d', Text: '✔ FirebaseApp Cleared'});
+     })
     .catch((error) => {
       showAlert({ BgColor: '#e8af05', Text: '⚠ Error Clearing FirebaseApp'});
     });
@@ -366,16 +316,15 @@ function logout() {
             const Doc_Name = document.getElementById('Stores').value;
             const fireDB = doc(dataBaseRef, "Notes_Collection", `${Doc_Name}`);
             const AlertText = document.getElementById('Header').innerText;
-            const lines = document.getElementById('textBox').value.trim().split('\n\n\n\n');
+            const lines = document.getElementById('textBox').value.split('\n\n\n\n');
+            const sentence = lines[lines.length - 1].trim();
             const date  = `● Date: ${new Date().toLocaleDateString('en-IN')} ●`;
-            const saveSentence = date + "\n" + lines[lines.length - 1].trim();
-            if (lines && saveSentence) {
+            const saveSentence = date + "\n" + sentence;
+            if (sentence) {
               await updateDoc(fireDB, { Notes: arrayUnion(saveSentence) });
+              // console.log("Note saved to Firestore.")
+              showAlert({ BgColor: '#1bd13d', Text: `✔ ${AlertText}`});
             }
-            console.log("Note saved to Firestore:", saveSentence)
-            await updateDoc(fireDB, { Notes: arrayUnion(saveSentence) });
-            console.log("Note saved to Firestore:", saveSentence);
-            //showAlert({ BgColor: '#1bd13d', Text: `✔ ${AlertText}`});
             //showAlert({ BgColor: '#f2074e', Text: `✖ ${AlertText}`});
             //showAlert({ BgColor: '#e8af05', Text: `⚠ ${AlertText}`});
         } catch (error) {
@@ -397,6 +346,7 @@ function logout() {
           if (deleteSentence) {
             await updateDoc(fireDB, { Notes: arrayRemove(deleteSentence) });
           }
+          showAlert({ BgColor: '#f2074e', Text: `✖ ${AlertText}`});
           console.log("Note deleted from Firestore.");
         } catch (error) {
           console.error("Error deleting note:", error);
@@ -417,7 +367,7 @@ function logout() {
             document.getElementById('textBox').value = getNote.data().Notes.reverse().join('\n=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=\n');
           } else {
             // getNote.data() will be undefined in this case.
-            console.log("No such document!");
+            alert("No such document.");
           }
         } catch (error) {
             console.log("Error: ", error);
@@ -504,7 +454,7 @@ document.addEventListener("keyup", function(event) {
         arrowRightPressed = false;
     }
 });
-*/
+
 
 </script>
 </body>

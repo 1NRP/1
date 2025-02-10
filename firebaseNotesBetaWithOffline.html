@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="icon" sizes="192x192" href="https://1nrp.github.io/1/Images/N-Logo1.png">
+  <meta charset="utf-8">
+  <meta name="theme-color" content="#02121b">
+  <title>Firebase Cloud Notes</title>
+</head>
+<style>
+body {
+    color: #fff;
+    background-color: #000;
+}
+input:focus,
+textarea,
+select:focus {
+  outline:0
+}
+h2 {
+    font-family: cursive, arial, sans-serif;
+    font-size: 25px;
+    font-weight: 910;
+    margin: -8px 0px 2px 0px;
+}
+#TopBar {
+    display: flex;
+    flex-direction: row;
+}
+#Stores {
+    padding: 2px 2px;
+    border: 2px solid #555;
+    border-radius: 40px;
+    width: 80px;
+    position: absolute;
+    color: #fff;
+    background-color: #000;
+    margin: -6px 0px 0px 70vw;
+    font-weight: 500;
+}
+#textBox {
+    width: 96%;
+    height: 85vh;
+    padding: 6px;
+    font-family: sans-serif;
+    font-size: 15px;
+    resize: none;
+    overflow: auto;
+    background-color: #111136;
+    border: none;
+    color: #fff;
+    border-radius: 6px;
+}
+#deleteBox {
+    color: #fff;
+    height: auto;
+    min-height: 10%;
+    resize: none;
+    overflow: auto;
+    box-sizing: border-box;
+    width: 100%;
+    overflow: scroll;
+    background-color: #361923;
+    border: 2px solid #444;
+    border-radius: 6px;
+}
+#deleteButton {
+    background-color: #802;
+    color: #b4b4b4;
+    border: none;
+    font-size: 15px;
+    border-radius: 50px;
+    padding: 6px 8px;
+    font-weight: 900;
+    margin: 0px 2px 4px 0px;
+}
+#saveButton {
+    background-color: #205c89;
+    color: #b4b4b4;
+    border: none;
+    font-size: 15px;
+    border-radius: 50px;
+    padding: 6px 8px;
+    font-weight: 900;
+    margin: 2px 2px 0px 15%;
+}
+#getButton {
+    background-Color: #761;
+    color: #b4b4b4;
+    border: none;
+    border-radius: 50px;
+    font-size: 15px;
+    font-weight: 900;
+    padding: 6px 8px;
+    margin: 2px 2px 0px 15px;
+}
+#clearButton {
+    border: none;
+    color: #b4b4b4;
+    border-radius: 50px;
+    background-color: #833;
+    padding: 2px 7px 5px 7px;
+    margin: 0px 0px 0px 15%;
+}
+#clearButton:hover,
+#getButton:hover,
+#deleteButton:hover,
+#saveButton:hover {
+    background-color: #444;
+}
+.Alerts {
+    position: fixed;
+   /* top: 5dvh; */
+    left: 15dvw;
+    background-color: #fff;
+    color: #000;
+    font-weight: 900;
+    padding: 5px 5px;
+    border: none;
+    border-radius: 5px;
+    animation-name: Alert;
+    animation-duration: 1s;
+}
+#form-container { 
+    position: fixed;
+    top: 30vh;
+    left: 10vw;
+    display: none;
+    background-color: #456;
+    box-shadow: 10px 10px 8px #789;
+    padding: 20px;
+    border-radius: 8px;
+    width: 70vw;
+    animation-name: Login;
+    animation-duration: 0.5s;
+}    
+#form-container input { outline: 0 }
+#form-container h2 { 
+    text-align: center;
+    color: #d88;
+    margin: -15px 0px 10px 0px;
+}
+a4 { color: #d88; font-weight: 600 }
+#userId, #password {
+    width: 90%; 
+    padding: 10px;
+    background-color: #222; 
+    margin-bottom: 10px; 
+    border: 2px dashed #888; 
+    border-radius: 6px;
+}
+::placeholder { font-weight: 600 }
+#form-container button { 
+    width: 99%; 
+    padding: 10px;
+    border: 2px solid #ddd;
+    font-weight: 600;
+    background-color: #4CAF50; 
+    color: #fff; 
+    border-radius: 4px;
+}
+#form-container button:hover { 
+    background-color: #4caf5099; }
+/* Animations */
+@keyframes Alert {
+    from {font-size: 10px; top: 5dvh}
+    to {font-size: 25px; top: 10dvh}
+}
+@keyframes Login { from {opacity: 0; top: 0vh} to {opacity: 1; top: 30vh} }
+</style>
+
+<body>
+<!--  * Keyboard Shortcuts: Fetch Notes: "ArrowRight + ArrowDown", Save Notes: "ArrowRight + ArrowUp", Delete Notes: "ArrowRight + End"  -->
+<div id="TopBar">
+    <h2 id="Header">Nihar's Cloud Notes</h2>
+    <div id='loginStatus' style="padding: 1px; height: 20px; width: 20px; position: absolute; border-radius: 50px; margin: -0.5vh 0px 0px 60vw" onclick="showLogin()"></div>
+    <div id="form-container">
+        <h2>Login</h2> 
+        <form id="loginForm"> 
+          <input type="text" placeholder="Enter Email" id="userId" required> 
+          <input type="password" placeholder="Enter Password" id="password" required> 
+          <button type="submit">SUBMIT</button>
+          <br><a4>Enable Offline Support ?</a4><input type="checkbox" name="check" id="device-type" style="margin: 20px 0px 0px 15px; transform: translateY(3px)">
+        </form>
+     </div>
+
+    <select id="Stores">
+        <option value="Miscellaneous" data-Name="Nihar's Cloud Notes" data-Colour="#111136">Miscellaneous</option>
+        <option value="Trading_And_Investing" data-Name="Trading & Investing" data-Colour="#4e3144">Trading & Investing</option>
+        <option value="Important_Webpages" data-Name="Important Webpages" data-Colour="#395c42">Important Webpages</option>
+        <option value="Movie_Watch_List" data-Name="Movie Watch List" data-Colour="#503959">Movie Watch List</option>
+        <option value="Book_Summaries" data-Name="Book Summaries" data-Colour="#664337">Book Summaries</option>
+        <option value="TG_Channels" data-Name="TG Channels" data-Colour="#376661">TG Channels</option>
+        <option value="To_Do_List" data-Name="To Do List" data-Colour="#364b57">To Do List</option>
+        <option value="Keywords" data-Name="Keywords" data-Colour="#272729">Keywords</option>
+        <option value="Book_List" data-Name="Book List" data-Colour="#8c7842">Book List</option>
+        <option value="Quotes" data-Name="Quotes" data-Colour="#1d423a">Quotes</option>
+    </select>
+</div>
+    <button id="logout" style="background-color: #d41818; position: fixed; top: 40vh; left: 32vw; font-weight: 600; font-size: 20px; padding: 20px; display: none; border-radius: 50px; box-shadow: 8px 8px 6px #c44b4b; border: none; border-radius: 6px;" onclick="logout()">LOG OUT</button>
+    <textarea id="textBox" spellcheck="false" autocomplete="off" translate="no"></textarea> 
+    <button id="deleteButton" onclick="deleteNote()">DELETE</button>
+    <button id="clearButton" onclick="document.getElementById('textBox').value=''">✖</button>
+    <button id="saveButton" onclick="saveNote()">SAVE</button>
+    <button id="getButton" onclick="getNotes()">VIEW</button>
+    <textarea id="deleteBox" spellcheck="false" autocomplete="off" translate="no"></textarea>
+
+<script src="firebaseFunctions.js"></script>
+<script>
+
+// Button click Event-Listeners.
+document.getElementById('saveButton').onclick = saveNote;
+document.getElementById('getButton').onclick = getNotes;
+document.getElementById('deleteButton').onclick = deleteNote;
+document.getElementById('textBox').onclick = pasteLineText;
+document.getElementById('logout').onclick = logout;
+document.getElementById('loginStatus').onclick = showLogin;
+
+// Import necessary functions from Firebase SDKs.
+//import { initializeApp, getApps, deleteApp } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-app.js";
+//import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-auth.js";
+//import { getFirestore, collection as myCollection, query ,onSnapshot, doc, getDoc, arrayUnion, arrayRemove, updateDoc, initializeFirestore, persistentLocalCache, persistentMultipleTabManager, clearIndexedDbPersistence, waitForPendingWrites, terminate } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-firestore.js";
+
+const firebaseConfig = { apiKey: "AIzaSyAwh2IXpNUCL2JHuTLKfc8FZDDd62g4j74", authDomain: "nrp888.firebaseapp.com", projectId: "nrp888", storageBucket: "nrp888.firebasestorage.app", messagingSenderId: "876054763342", appId: "1:876054763342:web:fddead6f7db3f8ebcff01f" };
+const app = initializeApp(firebaseConfig);
+
+// Initialize Firestore based on Persistence Choice.
+let dataBaseRef;
+function initFirestore() {
+if (loggedIn) {
+  if (localStorage.getItem("FirestorePersistence") === "Enabled") {
+    dataBaseRef = initializeFirestore(app, { localCache: persistentLocalCache({ tabManager: persistentMultipleTabManager() }) })
+    console.log('Firestore initialized with persistentLocalCache.');
+  } else {
+    dataBaseRef = getFirestore(app);
+  }
+} else {
+  showAlert({ BgColor: '#e8af05', Text: '⚠ Not Logged In'});
+  console.log("Could not initialize Firestore because User is not logged in yet.");
+  }
+}
+
+// Login form.
+function showLogin() {
+  const form = document.getElementById('form-container');
+  const logoutBtn = document.getElementById('logout');
+  if (!loggedIn) {
+    form.style.display = (form.style.display === 'none' ? 'block' : 'none');
+    // Prevent adding multiple listeners to the form.
+    if (!form.hasListener) {
+      form.addEventListener('submit', function(event) {
+        event.preventDefault();
+        const userId = document.getElementById('userId').value;
+        const userPassword = document.getElementById('password').value;
+        let offlineSupport = document.getElementById('device-type').checked;
+        login(userId, userPassword, offlineSupport);
+      });
+      // Mark form as having an event listener.
+      form.hasListener = true;
+    }
+  } else {
+    // Toggle visibility of logout button.
+    logoutBtn.style.display = (logoutBtn.style.display === 'none' ? 'block' : 'none');
+  }
+}
+
+// Enable Offline Persistence if Trusted Device while logging in.
+function login(email, password, offlineSupport) {
+  const auth = getAuth();
+  signInWithEmailAndPassword(auth, email, password)
+    .then((userCredential) => {
+      // Promise successfully resolved and Signed in.
+      loggedIn = true;
+      const user = userCredential.user;
+      showAlert({ BgColor: '#1bd13d', Text: '✔ Logged In' });
+      document.getElementById('form-container').style.display = 'none';
+    })
+    .catch((error) => {
+      alert(error.message);
+    });
+  if (offlineSupport) {
+    localStorage.setItem("FirestorePersistence", "Enabled");
+    dataBaseRef = initializeFirestore(app, { localCache: persistentLocalCache({ tabManager: persistentMultipleTabManager() }) })
+    console.log('Firestore initialized with IndexedDB caching for offline support and multiple tab offline persistence.');
+    activateOnSnapshot();
+  } else {
+    localStorage.setItem("FirestorePersistence", "Disabled");
+    dataBaseRef = getFirestore(app);
+    activateOnSnapshot();
+    console.log('Firestore initialized with default configuration.');
+  }
+}
+
+// 'onSnapshot' Realtime Request Listener.
+function activateOnSnapshot() {
+  if (dataBaseRef !== undefined && dataBaseRef !== null) {
+    const responseFrom = query(myCollection(dataBaseRef, "Notes_Collection"));
+    onSnapshot(responseFrom, {includeMetadataChanges: true}, (snapshot) => {
+      const source = snapshot.metadata.fromCache ? "Cache" : "Server";  // 'isFromCache' returns true if the snapshot was created from cached data rather than guaranteed up-to-date server data. If your listener has opted into metadata updates (via INCLUDE) you will receive another snapshot with isFromCache() equal to false once the client has received up-to-date data from the backend.
+      const sign = source === "Cache" ? "⚠" : "✔";
+      const colour = source === "Cache" ? "#e8af05" : "#1bd13d";
+      showAlert({ BgColor: `${colour}`, Text: `${sign} ${source}` });
+    });
+  };
+}
+
+// Check login status.
+let loggedIn = false; // Global Login-Status variable.
+async function loginStat() {
+    const statBtn = document.getElementById('loginStatus');
+    const auth = getAuth();
+    onAuthStateChanged(auth, (user) => {
+      if (user) {
+        loggedIn = true;
+        statBtn.style.backgroundColor = '#0d0';
+        initFirestore();
+      } else {
+        // User is signed out.
+        loggedIn = false;
+        statBtn.style.backgroundColor = '#d00';
+    }
+  });
+ }
+loginStat();  // Run at Page Load.
+
+// Logout and clear IndexedDB and entire Firebase instance.
+function logout() {
+  if (loggedIn) {
+  waitForPendingWrites(dataBaseRef)
+  .then(() => {
+    terminate(dataBaseRef);
+  }) .catch((error) => { alert('Could Not Sync Pending Writes With Server.'); })
+
+  const auth = getAuth();
+  signOut(auth)
+  .then(() => {
+    loggedIn = false;
+    showAlert({ BgColor: '#f2074e', Text: '✖ Logged Out'});
+    document.getElementById('logout').style.display = 'none'; })
+  .catch((error) => {
+    showAlert({ BgColor: '#e8af05', Text: '⚠ Error Logging Out'});
+  });
+  // Clear FirebaseApp instance and all functionalities (e.g. IndexedDB cache, Firestore, auth etc.) after 1.5 seconds of logging out.
+  setTimeout(() => {
+  if (localStorage.getItem("FirestorePersistence") === "Enabled") {
+  clearIndexedDbPersistence(dataBaseRef) 
+    .then(() => { console.log("IndexedDB Cleared Successfully."); })
+    .catch((error) => { alert('Failed To Clear IndexedDB.'); })
+  }
+  deleteApp(app)
+    .then(() => {
+      showAlert({ BgColor: '#1bd13d', Text: '✔ FirebaseApp Cleared'}); })
+    .catch((error) => {
+      showAlert({ BgColor: '#e8af05', Text: '⚠ Error Clearing FirebaseApp'});
+    });
+  }, 1500);
+  } else {
+    showAlert({ BgColor: '#848', Text: 'Already Logged Out'});
+  }
+}
+
+// SaveNote.
+    async function saveNote() {
+      if (loggedIn) {
+        try {
+            const Doc_Name = document.getElementById('Stores').value;
+            const fireDB = doc(dataBaseRef, "Notes_Collection", `${Doc_Name}`);
+            const AlertText = document.getElementById('Header').innerText;
+            const lines = document.getElementById('textBox').value.trim().split('\n\n\n\n');
+            const date  = `● Date: ${new Date().toLocaleDateString('en-IN')} ●`;
+            const saveSentence = date + "\n" + lines[lines.length - 1].trim();
+            if (lines && saveSentence) {
+              await updateDoc(fireDB, { Notes: arrayUnion(saveSentence) });
+            }
+            console.log("Note saved to Firestore:", saveSentence)
+            await updateDoc(fireDB, { Notes: arrayUnion(saveSentence) });
+            console.log("Note saved to Firestore:", saveSentence);
+            //showAlert({ BgColor: '#1bd13d', Text: `✔ ${AlertText}`});
+            //showAlert({ BgColor: '#f2074e', Text: `✖ ${AlertText}`});
+            //showAlert({ BgColor: '#e8af05', Text: `⚠ ${AlertText}`});
+        } catch (error) {
+          console.error("Error saving note:", error);
+        }
+      } else {
+        showAlert({ BgColor: '#e8af05', Text: '⚠ Login First'});
+      }
+    }
+
+// DeleteNote.
+   async function deleteNote() {
+      if (loggedIn) {
+        try {
+          const Doc_Name = document.getElementById('Stores').value;
+          const fireDB = doc(dataBaseRef, "Notes_Collection", `${Doc_Name}`);
+          const AlertText = document.getElementById('Header').innerText;
+          const deleteSentence = document.getElementById('deleteBox').value.trim();
+          if (deleteSentence) {
+            await updateDoc(fireDB, { Notes: arrayRemove(deleteSentence) });
+          }
+          console.log("Note deleted from Firestore.");
+        } catch (error) {
+          console.error("Error deleting note:", error);
+        }
+      } else {
+        showAlert({ BgColor: '#e8af05', Text: '⚠ Login First'});
+      }
+    }
+
+// GetNote.
+    async function getNotes() {
+      if (loggedIn) {
+        try {
+          const Doc_Name = document.getElementById('Stores').value;
+          const fireDB = doc(dataBaseRef, "Notes_Collection", `${Doc_Name}`);
+          const getNote = await getDoc(fireDB);
+          if (getNote.exists()) {
+            document.getElementById('textBox').value = getNote.data().Notes.reverse().join('\n=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=\n');
+          } else {
+            // getNote.data() will be undefined in this case.
+            console.log("No such document!");
+          }
+        } catch (error) {
+            console.log("Error: ", error);
+        }
+      } else {
+          // Trigger Login Function.
+          showAlert({ BgColor: '#e8af05', Text: '⚠ Login First'});
+          }
+      }
+    
+// Function to paste specific note into deleteBox. 
+function pasteLineText(event) {
+    var textBox = document.getElementById('textBox');
+    var text = textBox.value;
+    var cursorPosition = textBox.selectionStart; // Get cursor position
+    // Find the nearest start line before the cursor position
+    var startLine = text.lastIndexOf('\n=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=\n', cursorPosition);
+    // Find the nearest end line after the cursor position
+    var endLine = text.indexOf('\n=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=\n', cursorPosition);
+    // Adjust start and end positions to get the text between them
+    var startOfLine = startLine + '\n=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=\n'.length;
+    var endOfLine = endLine;
+    // If no start line is found before the cursor position, start from the beginning
+    if (startLine === -1 || cursorPosition < startLine) {
+        startOfLine = 0; }
+    // If no end line is found after the cursor position, select till the end of text
+    if (endLine === -1 || cursorPosition > endLine) {
+        endOfLine = text.length; }
+    var lineText = text.substring(startOfLine, endOfLine);
+    document.getElementById('deleteBox').value = lineText;
+}
+  
+// Global Variables to contain Stores' properties.
+document.getElementById('Stores').addEventListener('change', function() {
+    var dropdown = document.getElementById('Stores');
+    var chosenStore = dropdown.options[dropdown.selectedIndex];
+    var Name = chosenStore.getAttribute('data-Name');
+    var Colour = chosenStore.getAttribute('data-Colour');
+    document.getElementById('textBox').style.backgroundColor = Colour;
+    document.getElementById('Header').innerText = Name;  
+});
+
+// Auto expand deleteBox if texts overflow while typing or pasting, to properly see what will be deleted.
+document.addEventListener('DOMContentLoaded', function() {
+  const textarea = document.getElementById('deleteBox');
+  textarea.addEventListener('input', function() {
+    this.style.height = 'auto'; // Reset the height
+    this.style.height = this.scrollHeight + 'px'; // Set the height to the scroll height
+  });
+  // Trigger input event to adjust height if there's initial content.
+  textarea.dispatchEvent(new Event('input'));
+});
+
+// Show Alerts depending upon the response received.
+function showAlert({ BgColor = '#fff', Text = 'Alert' } = {}) {
+    var alertBox = document.createElement('div');
+    alertBox.className = 'Alerts';
+    alertBox.style.backgroundColor = BgColor;
+    alertBox.textContent = Text;
+    document.body.appendChild(alertBox);
+    setTimeout(() => { 
+        alertBox.remove(); 
+    }, 1000);
+  }
+
+// Keyboard Shortcuts for different Functions.
+let arrowRightPressed = false;
+document.addEventListener("keydown", function(event) {
+    if (event.key === "ArrowRight") {
+        arrowRightPressed = true;
+    }
+    if (arrowRightPressed) {
+        if (event.key === "ArrowUp") {
+            saveNote();
+        } else if (event.key === "ArrowDown") {
+            getNotes();
+        } else if (event.key === "End") {
+            deleteNote(); 
+        }
+    }
+});
+document.addEventListener("keyup", function(event) {
+    if (event.key === "ArrowRight") {
+        arrowRightPressed = false;
+    }
+});
+
+
+</script>
+</body>
+</html>
