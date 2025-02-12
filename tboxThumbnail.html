@@ -71,7 +71,7 @@ body {
 </head>
 <body>
 <div id="header">
-    <textarea id='txtBox' placeholder="Example: 150-160" ></textarea>
+    <textarea id='txtBox' placeholder="Example: 140-160" ></textarea>
     <button id='loadBtn' onclick="viewImages()">LOAD</button>
 </div>
 <div id="viewBox"></div>
@@ -89,12 +89,12 @@ if (range === '') {
   alert('Range should be less than 50. It is useful for ensuring less bandwidth usage during the Thumbnail Fetching process.'); 
   return; // "return" would exit the function. 
 }
-var response = await fetch("https://srbo3gia676hprqy.public.blob.vercel-storage.com/KV-Store-Saved-TB-Link-Thumbnails.json");
+var response = await fetch("https://srbo3gia676hprqy.public.blob.vercel-storage.com/Others/KV-Store-Saved-TB-Link-Thumbnails.json");
 var json = await response.json();
-var jsonrange = json.slice(start, end+1); // In "array.slice()" method 1st number is inclusive while 2nd number is not.
+var jsonrange = json.slice(start, end); // In "array.slice()" method 1st number is inclusive while 2nd number is not. Adding 1 to end (end+1) will solve this.
 let count = start;
 for ( var obj of jsonrange ) {
-    var link = obj.str, image = obj.url;
+    var link = obj.url, image = obj.img;
     var box = document.createElement('div');
     box.className = 'imgBox';
     box.innerHTML = ` 
