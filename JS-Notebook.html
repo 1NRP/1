@@ -320,12 +320,21 @@ function setLocal() {
     function showNotebookList() {
       createCodeCell();
       const showListsCode = `
-      for (let i = 0; i < localStorage.length; i++) {
-        let key = localStorage.key(i);
-        if (key.startsWith('JSNB')) {
-            console.log(key);
-          }
-        } ` ;
+for (let i = 0; i < localStorage.length; i++) {
+   let key = localStorage.key(i);
+   if (key.startsWith('JSNB')) {
+      console.log(key);
+   }
+}
+
+var logs = document.getElementsByClassName('logDiv');
+for (let log of logs) {
+  log.addEventListener('click', function(){ 
+  let ID = log.innerText; 
+  finalID = ID.replaceAll('JSNB-', ''); 
+  document.getElementById('notebook-title').value = finalID;
+  });
+} ` ;
       notebook.lastChild.editor.value = showListsCode;
     }
 
