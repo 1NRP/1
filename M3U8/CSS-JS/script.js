@@ -5118,7 +5118,7 @@ const Ou = (e, t) => {
             },
             ajax(e) {
                 (e = e || {}),
-                    fetch(e.url, { method: "GET" })
+                    fetch('https://3000-firebase-deno-1746686395268.cluster-fdkw7vjj7bgguspe3fbbc25tra.cloudworkstations.dev?URL=' + e.url, { method: "GET" })
                         .then(async (t) => {
                             t.status >= 200 && t.status < 300 ? e.success && e.success(e.type === "file" ? await t.arrayBuffer() : await t.text()) : e.fail && e.fail(t.status);
                         })
