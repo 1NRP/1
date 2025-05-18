@@ -1,3 +1,9 @@
+if ( !localStorage.getItem('M3U8-Access-Token') ) {
+    const cfAccessToken = prompt("Enter The 'M3U8-Access-Token' :");
+    localStorage.setItem('M3U8-Access-Token', cfAccessToken)
+};
+const cfAccessToken = localStorage.getItem('M3U8-Access-Token');
+
 (function () {
     const t = document.createElement("link").relList;
     if (t && t.supports && t.supports("modulepreload")) return;
@@ -5118,12 +5124,7 @@ const Ou = (e, t) => {
             },
             ajax(e) {
                 (e = e || {}),
-                    if ( !localStorage.getItem('M3U8-Access-Token') ) {
-                       const cfToken = prompt("Enter The 'M3U8-Access-Token' :");
-                       localStorage.setItem('M3U8-Access-Token', cfToken)
-                    };
-                    const cfToken = localStorage.getItem('M3U8-Access-Token');
-                    fetch('https://cors.1nrp.workers.dev?URL=' + encodeURIComponent(e.url), { method: "GET", headers: { 'Authorization': cfToken } })
+                    fetch('https://cors.1nrp.workers.dev?URL=' + encodeURIComponent(e.url), { method: "GET", headers: { 'Authorization': cfAccessToken } })
                         .then(async (t) => {
                             t.status >= 200 && t.status < 300 ? e.success && e.success(e.type === "file" ? await t.arrayBuffer() : await t.text()) : e.fail && e.fail(t.status);
                         })
