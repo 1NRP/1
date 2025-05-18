@@ -5118,7 +5118,12 @@ const Ou = (e, t) => {
             },
             ajax(e) {
                 (e = e || {}),
-                    fetch('https://3000-firebase-deno-1746686395268.cluster-fdkw7vjj7bgguspe3fbbc25tra.cloudworkstations.dev?URL=' + encodeURIComponent(e.url), { method: "GET" })
+                    if ( !localStorage.getItem('M3U8-Access-Token') ) {
+                       const cfToken = prompt("Enter The 'M3U8-Access-Token' :");
+                       localStorage.setItem('M3U8-Access-Token', cfToken)
+                    };
+                    const cfToken = localStorage.getItem('M3U8-Access-Token');
+                    fetch('https://cors.1nrp.workers.dev?URL=' + encodeURIComponent(e.url), { method: "GET", headers: { 'Authorization': cfToken } })
                         .then(async (t) => {
                             t.status >= 200 && t.status < 300 ? e.success && e.success(e.type === "file" ? await t.arrayBuffer() : await t.text()) : e.fail && e.fail(t.status);
                         })
