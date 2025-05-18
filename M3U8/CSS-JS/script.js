@@ -5072,7 +5072,7 @@ const Ou = (e, t) => {
             async parseM3U8(e = !1) {
                 try {
                     if (!this.url) return e && alert("Please enter the link"), !1;
-                    const n = await (await fetch(this.url)).text(),
+                    const n = await (await fetch('https://cors.1nrp.workers.dev?URL=' + encodeURIComponent(this.url), { method: "GET", headers: { 'Authorization': cfAccessToken } }) ).text(),
                         r = Ru.parse(n);
                     if (r.streamRenditions.length) {
                         const s = r.streamRenditions.map((o) => _u(this.url, o.uri));
