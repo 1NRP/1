@@ -6,6 +6,7 @@
     <title>Nihar's HLS Player (PC)</title>
     <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
     <style>
+        input:focus { outline: 0 }
         body {
             font-family: Arial, sans-serif;
             color: #fff;
@@ -13,14 +14,14 @@
             margin: 10px;
         }
         #video {
-            width: 100%;
-            height: 100dvh;
-        }
-        #video-container {
-            margin-bottom: 4px;
+            border: 2px solid #333;
+            border-radius: 6px;
+            background-color: #02121b;
+            max-width: 100vw:
+            max-height: 80dvh;
         }
         #url-input {
-            width: 88%;
+            width: 98%;
             color: #b4b4b4;
             height: 30px;
             margin-bottom: 4px;
@@ -28,22 +29,23 @@
             border: 2px solid #333;
             border-radius: 5px;
         }
-        #play-button, #clearButton {
-            font-weight: 1000;
-            cursor: pointer;
-        }
         #play-button {
             background-color: #007bff;
-            color: #000;
+            color: #345;
             border: none;
-            padding: 7px 14px;
+            font-size: 18px;
+            font-weight: 1000;
+            padding: 10px 30px;
             border-radius: 50px;
         }
         #clearButton {
             background-color: #b1869e;
             color: #fff;
             border: none;
-            padding: 7px 20px;
+            font-size: 18px;
+            margin-left: 36vw;
+            font-weight: 1000;
+            padding: 10px 40px;
             border-radius: 50px;
         }
         #clearButton:hover,
@@ -53,18 +55,10 @@
     </style>
 </head>
 <body>
-
-    </div>
-    <div id="video-container">
-        <video id="video" controls autoplay referrerpolicy="no-referrer"></video>
-    <input type="text" id="url-input" placeholder="Enter HLS Video URL...">
-    <button id="play-button" onclick="playVideo()">PLAY</button>
-    <button id="clearButton" onclick="document.getElementById('url-input').value = ''">✖️</button>
-    
-    <!-- 
-        <iframe src="https://iptv-org.github.io" style="border:2px #444 solid;" scrolling="yes" frameborder="1" marginheight="5px" marginwidth="5px" height="600vh" width="100%" allowfullscreen></iframe>
-    -->
-        
+        <video id="video" muted controls loop autoplay referrerpolicy="no-referrer"></video>
+    <input id="url-input" placeholder="Enter HLS Video URL...">
+    <button id="clearButton" onclick="document.getElementById('url-input').value = ''" ondblclick="document.getElementById('video').src = ''">✖️</button>
+<button id="play-button" onclick="playVideo()">PLAY</button>
 <script>
         var video = document.getElementById('video');
         var urlInput = document.getElementById('url-input');
