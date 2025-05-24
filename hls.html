@@ -17,11 +17,12 @@
             border: 2px solid #333;
             border-radius: 6px;
             background-color: #02121b;
-            max-width: 99dvw;
+            width: 95dvw;
+            min-height: 80dvh;
             max-height: 80dvh;
         }
         #url-input {
-            width: 98%;
+            width: 94vw;
             color: #b4b4b4;
             height: 30px;
             margin-bottom: 4px;
@@ -29,9 +30,13 @@
             border: 2px solid #333;
             border-radius: 5px;
         }
+        ::placeholder {
+            color: #678;
+            font-weight: 600;
+        }
         #play-button {
-            background-color: #007bff;
-            color: #345;
+            background-color: #0d4444;
+            color: #456;
             border: none;
             font-size: 18px;
             font-weight: 1000;
@@ -39,7 +44,7 @@
             border-radius: 50px;
         }
         #clearButton {
-            background-color: #b1869e;
+            background-color: #664444;
             color: #fff;
             border: none;
             font-size: 18px;
@@ -55,7 +60,7 @@
     </style>
 </head>
 <body>
-        <video id="video" muted controls loop autoplay referrerpolicy="no-referrer"></video>
+        <video id="video" muted controls loop autoplay referrerpolicy="no-referrer" poster="nothingIsGivenForSolidBackGround"></video>
     <input id="url-input" placeholder="Enter HLS Video URL...">
     <button id="clearButton" onclick="document.getElementById('url-input').value = ''" ondblclick="document.getElementById('video').src = ''">✖️</button>
 <button id="play-button" onclick="playVideo()">PLAY</button>
@@ -65,7 +70,7 @@
         var hls;
 
         function playVideo() {
-            var url = urlInput.value.trim();
+            const url = urlInput.value.trim() ? urlInput.value.trim() : sessionStorage.getItem('Shamsher-Link-On-SessionStorage');
             if (Hls.isSupported()) {
                 if (hls) {
                     hls.destroy();
