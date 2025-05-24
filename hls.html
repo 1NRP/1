@@ -70,7 +70,7 @@
         var hls;
 
         function playVideo() {
-            const url = urlInput.value.trim() ? urlInput.value.trim() : sessionStorage.getItem('Shamsher-Link-On-SessionStorage');
+            const url = urlInput.value.trim() ? urlInput.value.trim() : localStorage.getItem('Shamsher-Link-On-LocalStorage');
             if (Hls.isSupported()) {
                 if (hls) {
                     hls.destroy();
