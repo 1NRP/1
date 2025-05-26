@@ -261,6 +261,8 @@ function redirectConsole(output) {
     }
 
 function setLocal() {
+if ( !confirm('Do You Want To Set The Current Notebook With The Given Title To Local Storage ?') ) { return };
+
   const title = document.getElementById('notebook-title').value.trim();
   if (!title || title == 'Untitled Notebook') {
     alert('Please give a Title to the Notebook.');
@@ -328,7 +330,10 @@ function getLocal() {
     
 // Upload Notebook to Vercel KV.
 async function saveNotebook() {
-      notebook.innerHTML = '';
+  const check = confirm('Is This The Browser Where All Notebooks Are Saved In Local Storage ?');
+  if ( !check ) { return };
+
+      notebook.innerHTML = ''; // "notebook" is defined at the start of the script.
       for (let i = 0; i < localStorage.length; i++) {
         let key = localStorage.key(i);
         if (key.startsWith('JSNB')) {
@@ -350,8 +355,14 @@ async function saveNotebook() {
       });
 
       try {
+        let authCode = localStorage.getItem('JavaScript-Notebook-Auth-Code');
+        if (!authCode) {
+          authCode = prompt('Enter The Authorization Code For Server Verification While Saving The Notebooks:');
+          localStorage.setItem('JavaScript-Notebook-Auth-Code', authCode);
+        };
         const response = await fetch('https://1nrp.vercel.app/jsnb', { // express js paths are case-insensitive.
             method: 'POST',
+            headers: { 'Authorization': authCode };
             body: JSON.stringify(content, null, 2)
         });
         if (response.ok) {
