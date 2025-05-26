@@ -362,7 +362,7 @@ async function saveNotebook() {
         };
         const response = await fetch('https://1nrp.vercel.app/jsnb', { // express js paths are case-insensitive.
             method: 'POST',
-            headers: { 'Authorization': authCode };
+            headers: { 'Authorization': authCode },
             body: JSON.stringify(content, null, 2)
         });
         if (response.ok) {
