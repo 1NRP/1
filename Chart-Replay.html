@@ -1,0 +1,979 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Candlestick Replay</title>
+    <style>
+        :root {
+            --bg-color: #131722;
+            --grid-color: #2a2e39;
+            --text-color: #d1d4dc;
+            --bull-color: #089981;
+            --bear-color: #f23645;
+            --accent-color: #2962ff;
+            --panel-bg: #1e222d;
+        }
+        input:focus, select:focus, textarea:focus, button:focus { outline:0 }
+
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            overflow: hidden;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            user-select: none; /* Prevent text selection during drag */
+        }
+
+        /* --- Toolbar --- */
+        #toolbar {
+            padding: 4px;
+            background-color: #031b5c63;
+            border: solid 2px #057563;
+            margin: 2px;
+            border-radius: 10px;
+            z-index: 20;
+            font-family: Poppins, Courier, monospace;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        ::placeholder {
+            color: #929292;
+            font-family: Poppins, 'Courier New', Courier, monospace;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        button, input[type="file"], input[type="text"], #max-candles-input {
+            background: #031547be;
+            color: #ece919;
+            margin: 2px;
+            font-family: Poppins, 'Courier New', Courier, monospace;
+            border: 2px dashed #bb550d;
+            padding: 6px 9px;
+            border-radius: 4px;
+            font-size: 14px;
+            font-weight: 600;
+        }
+        button:hover { background: #363a45; }
+        button:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        #btn-ai {
+            background: linear-gradient(140deg, #912e2e, #022e6e);
+            border: 2px solid #bb550d;
+            font-weight: bold;
+            border-radius: 4px;
+        }
+        #btn-ai:hover { background: linear-gradient(140deg, #02364b, #793c04); }
+
+        /* Custom Slider Styling */
+        .slider-group {
+            display: flex;
+            flex-direction: column;
+            border-radius: 10px;
+        }
+        .sliders {
+            display: flex;
+            flex-direction: row;
+            /* gap: 8px; */
+            align-items: center;
+            padding: 4px 8px;
+            margin: 2px;
+        }
+        
+        input[type="range"] {
+            background: transparent;
+            width: 70vw;
+        }
+        input[type="range"]::-webkit-slider-runnable-track {
+            width: 100%; height: 4px;
+            background: #434651; border-radius: 2px;
+        }
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            height: 14px; width: 14px;
+            border-radius: 50%; background: var(--accent-color);
+            margin-top: -5px; cursor: pointer;
+        }
+
+        label { 
+            color: #c2bebe; 
+            font-size: 10px; 
+            text-transform: uppercase; 
+            font-weight: 600;
+        }
+
+        #hamburgerMenu {
+            position: absolute;
+            bottom: 10px;
+            z-index: 100;
+            right: 10px;
+            font-size: 14px;
+            font-weight: 1000;
+            transition: transform 0.4s ease;
+            color: #e2df12;
+            border: 2px solid #7c7676;
+            border-radius: 50px;
+            background-color: #470505b4;
+        }
+
+        /* --- Main Layout --- */
+        #main-container {
+            flex: 1;
+            display: flex;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* --- Y-Axis (Left Side) --- */
+        #price-scale {
+            width: 16vw;
+            background-color: var(--panel-bg);
+            border-right: 2px solid var(--grid-color);
+            position: relative;
+            overflow: hidden;
+            flex-shrink: 0;
+            z-index: 10;
+        }
+
+        /* Static Label Containers */
+        .static-label {
+            position: absolute;
+            right: 0;
+            width: 100%;
+            height: 0; /* Height 0, we position the border and text */
+            border-top: 1px solid #2a2e39; /* Grid line extension */
+        }
+        .static-label span {
+            position: absolute;
+            right: 6px;
+            top: -8px; /* Center text on line */
+            font-size: 11px;
+            color: #888;
+        }
+
+        /* --- Chart Area --- */
+        #chart-area {
+            flex: 1;
+            position: relative;
+            overflow: hidden;
+            cursor: crosshair; /* Default cursor */
+            background-color: var(--bg-color);
+            touch-action: none; /* Disable browser scrolling */
+        }
+        
+        /* Cursor changes based on state */
+        #chart-area.dragging { cursor: grabbing; }
+        #chart-area.paused { cursor: grab; }
+
+        #candles-container {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none;
+        }
+
+        /* Horizontal Grid Lines (inside chart area) */
+        .grid-line {
+            position: absolute;
+            left: 0; width: 100%; height: 1px;
+            background-color: #1e222d;
+            pointer-events: none;
+        }
+
+        /* Center Line & Current Price Label */
+        #center-line {
+            position: absolute;
+            top: 50%;
+            left: 0;
+            width: 100%;
+            height: 1px;
+            background-color: #2962ff66;
+            border-top: 1px dashed #2962ffe6;
+            pointer-events: none;
+            z-index: 5;
+            display: none; 
+        }
+
+        #current-price-badge {
+            position: absolute;
+            top: 50%;
+            left: 0; 
+            transform: translateY(-50%);
+            background-color: var(--accent-color);
+            color: white;
+            padding: 2px 6px;
+            font-size: 11px;
+            font-weight: bold;
+            border-radius: 0 3px 3px 0;
+            z-index: 15;
+            display: none;
+        }
+
+        /* --- Candle Styling --- */
+        .candle {
+            position: absolute;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            pointer-events: none;
+        }
+
+        .wick { width: 1px; background-color: currentColor; position: absolute; }
+        .body { width: 100%; position: absolute; border: 1px solid currentColor; box-sizing: border-box; }
+
+        .bullish { color: var(--bull-color); }
+        .bullish .body { background-color: rgba(8, 153, 129, 0.5); }
+        
+        .bearish { color: var(--bear-color); }
+        .bearish .body { background-color: rgba(242, 54, 69, 0.5); }
+
+        /* --- Modal --- */
+        #ai-modal {
+            display: none;
+            position: fixed; z-index: 100; left: 0; top: 0;
+            width: 100%; height: 100%;
+            background-color: rgba(0,0,0,0.6);
+            backdrop-filter: blur(3px);
+            align-items: center; justify-content: center;
+        }
+        .modal-content {
+            background: #1e222d;
+            border: 1px solid #434651;
+            width: 90%; max-width: 600px; max-height: 80vh;
+            border-radius: 8px;
+            display: flex; flex-direction: column;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+        .modal-header {
+            padding: 15px; border-bottom: 1px solid #2a2e39;
+            display: flex; justify-content: space-between;
+        }
+        .modal-body { padding: 20px; overflow-y: auto; line-height: 1.5; }
+        .close-btn { background: none; border: none; font-size: 20px; padding: 0; color: #888; }
+        
+        .loading { text-align: center; color: var(--accent-color); font-style: italic; }
+    </style>
+</head>
+<body>
+
+    <div id="main-container">
+        <!-- Left Y-Axis -->
+        <div id="price-scale">
+            <div id="current-price-badge">0.00</div>
+            <!-- Static labels generated by JS -->
+        </div>
+        
+        <!-- Chart Area -->
+        <div id="chart-area">
+            <div id="center-line"></div>
+            <div id="candles-container"></div>
+            <!-- Grid lines generated by JS -->
+        </div>
+    </div>
+    <div id="toolbar">
+        <div style="display: flex; flex-direction: row; align-items: center; gap: 10px">
+          <input type="file" id="fileInput" accept=".json" style="width: 68vw; display: none" />
+          <input id="urlInput" style="width: 70vw; padding: 6px; border: 2px dashed #bb550d" type="text" placeholder="Enter JSON URL..." />
+          <button onclick="urlOrFile(); style.transform = (style.transform === 'rotate(180deg)' ? 'rotate(0deg)' : 'rotate(180deg)')" style="transition: transform 0.4s ease" >☰</button>
+        </div>
+        <button id="btn-ai">AI Analyst</button>
+        <input type="number" id="max-candles-input" style="width: 40px; padding: 6px 2px" min="50" value="500">
+
+        <button id="btn-reset">RESET</button>
+        <button id="btn-play">PLAY</button>
+        
+        <div class="slider-group">
+          <div class="sliders">
+            <label>SPEED  :</label> 
+            <input type="range" id="speed-slider" min="0" max="100" value="50">
+          </div>
+          <div class="sliders">
+            <label>Zoom X</label>
+            <input type="range" id="zoom-x-slider" min="0.1" max="20" value="4" step="0.1">
+          </div>
+          <div class="sliders">
+            <label>Zoom Y</label>
+            <input type="range" id="zoom-y-slider" min="0.1" max="20" value="4" step="0.1">
+          </div>
+        </div>
+        <span id="status-text" style="margin-left : 10px; color: #b8b4b4; font-size: 14px;">No Data</span>
+    </div>
+
+    <!-- Hamburger Menu -->
+    <button id="hamburgerMenu" onclick="toggleToolbar(); style.transform = (style.transform === 'rotate(180deg)' ? 'rotate(0deg)' : 'rotate(180deg)');">☰</button>
+        
+    <!-- AI Modal -->
+    <div id="ai-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 style="margin:0; color:#fff;">AI Market Analysis</h3>
+                <button class="close-btn" onclick="document.getElementById('ai-modal').style.display='none'">&times;</button>
+            </div>
+            <div class="modal-body" id="ai-result"></div>
+        </div>
+    </div>
+
+    <script>
+        // --- Global State ---
+        const state = {
+            rawTicks: [],          
+            processedCandles: [],  
+            currentCandle: null,   
+            tickIndex: 0,          
+            
+            isPlaying: false,
+            // Playback Speed Control
+            msDelay: 0,            // Delay between frames (Slow mode)
+            ticksPerFrame: 1,      // Ticks processed per frame (Fast mode)
+            lastFrameTime: 0,
+            
+            // Viewport Settings
+            candleWidth: 12,
+            candleGap: 4,
+            pixelsPerRupee: 50,
+            
+            // Data State
+            currentPrice: 0,       
+            currentTime: 0,
+
+            // Panning State (Only active when paused)
+            panOffset: { x: 0, price: 0 },
+            isDragging: false,
+            dragStart: { x: 0, y: 0 },
+
+            // DOM Optimization
+            maxCandlesInDom: 500
+        };
+
+        // --- DOM Elements ---
+        const els = {
+            chartArea: document.getElementById('chart-area'),
+            candlesDiv: document.getElementById('candles-container'),
+            priceScale: document.getElementById('price-scale'),
+            centerLine: document.getElementById('center-line'),
+            priceBadge: document.getElementById('current-price-badge'),
+            status: document.getElementById('status-text'),
+            btnPlay: document.getElementById('btn-play'),
+            btnReset: document.getElementById('btn-reset'),
+            btnAI: document.getElementById('btn-ai'),
+            maxCandlesInput: document.getElementById('max-candles-input'),
+            aiModal: document.getElementById('ai-modal'),
+            aiResult: document.getElementById('ai-result')
+        };
+
+        // --- Data Generation ---
+        function generateMockTicks(count = 5000) {
+            let price = 1000;
+            const ticks = [];
+            let time = new Date().setHours(9, 30, 0, 0);
+            for (let i = 0; i < count; i++) {
+                price += (Math.random() - 0.5) * 2;
+                time += Math.floor(Math.random() * 1000) + 100;
+                ticks.push({ time, price: parseFloat(price.toFixed(2)) });
+            }
+            return ticks;
+        }
+
+        // Initial Load
+        state.rawTicks = generateMockTicks();
+        els.status.textContent = `Loaded ${state.rawTicks.length} ticks (Mock)`;
+
+        // --- Core Logic: Tick Processing ---
+        function processTick(tick) {
+            state.currentPrice = tick.price;
+            state.currentTime = tick.time;
+
+            const candleTimestamp = Math.floor(tick.time / 60000) * 60000;
+
+            if (!state.currentCandle) {
+                state.currentCandle = { time: candleTimestamp, open: tick.price, high: tick.price, low: tick.price, close: tick.price };
+            } else if (candleTimestamp > state.currentCandle.time) {
+                state.processedCandles.push({...state.currentCandle});
+                state.currentCandle = { time: candleTimestamp, open: tick.price, high: tick.price, low: tick.price, close: tick.price };
+            } else {
+                state.currentCandle.high = Math.max(state.currentCandle.high, tick.price);
+                state.currentCandle.low = Math.min(state.currentCandle.low, tick.price);
+                state.currentCandle.close = tick.price;
+            }
+        }
+
+        // --- Rendering System ---
+        
+        // Calculate Price from a Y pixel coordinate (Inverse of getY)
+        // Used for calculating what price a static label represents
+        function getPriceFromY(y, height, centerPrice) {
+            const centerY = height / 2;
+            // Formula derived from getY: y = centerY + (centerPrice - price) * scale
+            // (y - centerY) / scale = centerPrice - price
+            // price = centerPrice - (y - centerY) / scale
+            return centerPrice - ((y - centerY) / state.pixelsPerRupee);
+        }
+
+        // Calculate Y pixel from Price
+        function getY(price, height, centerPrice) {
+            const centerY = height / 2;
+            const diff = centerPrice - price;
+            return centerY + (diff * state.pixelsPerRupee);
+        }
+
+        function renderStaticGrid(height) {
+            // Ensure we have the correct number of static elements
+            // We place labels every 50 pixels
+            const stepPixels = 50;
+            const numLabels = Math.ceil(height / stepPixels) + 1;
+            
+            // Reuse or create elements? Simple approach: Clear and rebuild if count differs greatly,
+            // otherwise just update text. For simplicity/robustness: rebuild grid lines logic purely in render?
+            // Better: Keep DOM simple.
+            
+            // 1. Remove old grid lines (except badge)
+            const existingLabels = els.priceScale.querySelectorAll('.static-label');
+            const existingGrid = els.chartArea.querySelectorAll('.grid-line');
+            
+            // If we want strict static positioning, we just need to ensure 
+            // we have divs at top: 0, 50, 100...
+            
+            // Effective Center Price depends on Play/Pause state
+            // If Playing: strictly state.currentPrice
+            // If Paused: state.currentPrice + state.panOffset.price
+            const effectiveCenterPrice = state.currentPrice + state.panOffset.price;
+            
+            // --- Rebuild DOM if height changed significantly or first run ---
+            // For this "no-library" simulation, simple innerHTML replacement for the grid is fast enough
+            // considering it only happens on resize or just updating text content.
+            
+            // Let's try a cleaner approach: 
+            // Use a container for grid lines and a container for labels inside the parents
+            // But to keep code minimal, let's just update them.
+
+            // Clear old ones
+            els.priceScale.querySelectorAll('.static-label').forEach(e => e.remove());
+            els.chartArea.querySelectorAll('.grid-line').forEach(e => e.remove());
+
+            for (let y = 0; y <= height; y += stepPixels) {
+                // Calculate Price at this fixed Y
+                const priceAtLine = getPriceFromY(y, height, effectiveCenterPrice);
+                
+                // Label (Left Sidebar)
+                const label = document.createElement('div');
+                label.className = 'static-label';
+                label.style.top = `${y}px`;
+                label.innerHTML = `<span>${priceAtLine.toFixed(2)}</span>`;
+                els.priceScale.appendChild(label);
+
+                // Grid Line (Chart Area)
+                const grid = document.createElement('div');
+                grid.className = 'grid-line';
+                grid.style.top = `${y}px`;
+                els.chartArea.appendChild(grid);
+            }
+        }
+
+        function renderChart() {
+            if (state.currentPrice === 0) return;
+
+            const width = els.chartArea.clientWidth;
+            const height = els.chartArea.clientHeight;
+            
+            // Effective View Parameters
+            // If Playing: Pan is locked to 0
+            if (state.isPlaying) {
+                state.panOffset = { x: 0, price: 0 };
+            }
+
+            const effectiveCenterPrice = state.currentPrice + state.panOffset.price;
+            
+            // 1. Render Static Grid & Labels
+            renderStaticGrid(height);
+
+            // 2. Update Badge & Center Line
+            // Badge always shows current price, but its Y position moves if we pan Y
+            // getY returns pixel relative to container top
+            const currentPriceY = getY(state.currentPrice, height, effectiveCenterPrice);
+            
+            els.centerLine.style.display = 'block';
+            els.centerLine.style.top = `${currentPriceY}px`;
+            
+            els.priceBadge.style.display = 'block';
+            els.priceBadge.textContent = state.currentPrice.toFixed(2);
+            els.priceBadge.style.top = `${currentPriceY}px`;
+
+            // 3. Render Candles
+            els.candlesDiv.innerHTML = '';
+            const fragment = document.createDocumentFragment();
+
+            // Combine history + current
+            const allCandles = [...state.processedCandles];
+            if (state.currentCandle) allCandles.push(state.currentCandle);
+
+            // DOM Limiting
+            let renderList = allCandles;
+            const maxLimit = state.maxCandlesInDom || 10000;
+            if (allCandles.length > maxLimit) {
+                renderList = allCandles.slice(-maxLimit);
+            }
+
+            // X Position Logic
+            // Base head is at 70% width.
+            // Pan X adds to this.
+            const headX = (width * 0.7) + state.panOffset.x;
+            const step = state.candleWidth + state.candleGap;
+
+            // Iterate backwards from latest
+            for (let i = renderList.length - 1; i >= 0; i--) {
+                const candle = renderList[i];
+                
+                // Calculate X
+                // Distance from "Head" (latest candle)
+                const indexOffset = (renderList.length - 1) - i;
+                const x = headX - (indexOffset * step);
+
+                // Off-screen check (Right side)
+                if (x > width + state.candleWidth) continue;
+                // Off-screen check (Left side)
+                if (x < -state.candleWidth) break; // Stop loop if we went past left edge
+
+                // Y Coordinates based on effectiveCenterPrice (which includes pan)
+                const yOpen = getY(candle.open, height, effectiveCenterPrice);
+                const yClose = getY(candle.close, height, effectiveCenterPrice);
+                const yHigh = getY(candle.high, height, effectiveCenterPrice);
+                const yLow = getY(candle.low, height, effectiveCenterPrice);
+
+                const isBull = candle.close >= candle.open;
+                
+                // Element
+                const el = document.createElement('div');
+                el.className = `candle ${isBull ? 'bullish' : 'bearish'}`;
+                el.style.left = `${x}px`;
+                el.style.width = `${state.candleWidth}px`;
+                el.style.height = "100%"; 
+                el.style.top = "0";
+
+                // Wick
+                const wick = document.createElement('div');
+                wick.className = 'wick';
+                wick.style.top = `${yHigh}px`;
+                wick.style.height = `${Math.max(1, yLow - yHigh)}px`;
+                wick.style.left = '50%';
+
+                // Body
+                const body = document.createElement('div');
+                body.className = 'body';
+                const bodyTop = Math.min(yOpen, yClose);
+                const bodyH = Math.max(1, Math.abs(yOpen - yClose));
+                body.style.top = `${bodyTop}px`;
+                body.style.height = `${bodyH}px`;
+
+                el.appendChild(wick);
+                el.appendChild(body);
+                fragment.appendChild(el);
+            }
+            els.candlesDiv.appendChild(fragment);
+        }
+
+        // --- Loop & Controls ---
+
+        function loop(timestamp) {
+            if (!state.isPlaying) return;
+
+            // Speed Control Logic
+            // If msDelay > 0, we only tick if enough time passed
+            const elapsed = timestamp - state.lastFrameTime;
+
+            if (elapsed >= state.msDelay) {
+                // Process ticks
+                for (let i = 0; i < state.ticksPerFrame; i++) {
+                    if (state.tickIndex >= state.rawTicks.length) {
+                        state.isPlaying = false;
+                        els.btnPlay.textContent = "DONE";
+                        return;
+                    }
+                    processTick(state.rawTicks[state.tickIndex]);
+                    state.tickIndex++;
+                }
+                state.lastFrameTime = timestamp;
+                renderChart();
+            }
+
+            requestAnimationFrame(loop);
+        }
+
+        // --- Interaction Handlers ---
+
+        // Play/Pause
+        els.btnPlay.addEventListener('click', async function() {
+            const jsonLink = document.getElementById('urlInput').value;
+            if (jsonLink) {
+                await fetchJsonData();
+                return;
+            }
+            if (state.tickIndex >= state.rawTicks.length) {
+                state.tickIndex = 0;
+                state.processedCandles = [];
+                state.currentCandle = null;
+                state.currentPrice = 0;
+            }
+            
+            state.isPlaying = !state.isPlaying;
+            this.textContent = state.isPlaying ? "STOP" : "PLAY";
+            
+            // Update cursor
+            els.chartArea.classList.toggle('paused', !state.isPlaying);
+            
+            if (state.isPlaying) {
+                state.lastFrameTime = performance.now();
+                loop(performance.now());
+            } else {
+                renderChart(); // Re-render to allow panning immediately
+            }
+        });
+
+        els.btnReset.addEventListener('click', function() {
+            state.isPlaying = false;
+            state.tickIndex = 0;
+            state.processedCandles = [];
+            state.currentCandle = null;
+            state.currentPrice = 0;
+            state.panOffset = {x:0, price:0};
+            els.btnPlay.textContent = "PLAY";
+            els.candlesDiv.innerHTML = '';
+            els.priceScale.innerHTML = ''; // Clear labels
+            els.chartArea.querySelectorAll('.grid-line').forEach(e=>e.remove()); // Clear grid
+            els.centerLine.style.display = 'none';
+            els.priceBadge.style.display = 'none';
+            els.status.textContent = "Reset";
+            els.chartArea.className = "paused";
+        });
+
+        // Speed Slider (Dual Logic)
+        document.getElementById('speed-slider').addEventListener('input', function(e) {
+            const val = parseInt(e.target.value);
+            if (val > 50) {
+                // Fast Mode (1 to 50 ticks per frame)
+                state.msDelay = 0;
+                state.ticksPerFrame = Math.max(1, val - 49); // 1 to 51
+            } else {
+                // Slow Mode (Delay between 0ms to 1000ms)
+                state.ticksPerFrame = 1;
+                // Map 50->0 to 0ms->1000ms
+                state.msDelay = (50 - val) * 20; 
+            }
+        });
+
+        // Max Candles Input
+        els.maxCandlesInput.addEventListener('change', (e) => {
+            const val = parseInt(e.target.value);
+            state.maxCandlesInDom = val > 0 ? val : 10000;
+            if (!state.isPlaying) renderChart();
+        });
+
+        // Drag & Pan Logic (Desktop & Touch)
+        function startDrag(x, y) {
+            if (state.isPlaying) return;
+            state.isDragging = true;
+            state.dragStart = { x, y };
+            els.chartArea.classList.add('dragging');
+        }
+
+        function moveDrag(x, y) {
+            if (!state.isDragging || state.isPlaying) return;
+            
+            const dx = x - state.dragStart.x;
+            const dy = y - state.dragStart.y;
+
+            // X Pan (Pixels)
+            state.panOffset.x += dx;
+
+            // Y Pan (Convert Pixels to Price)
+            // Dragging DOWN (positive dy) means we want to see HIGHER prices (chart moves down)
+            // So Center Price must INCREASE? 
+            // Let's visualize: Drag down -> Chart moves down -> We see stuff that was above.
+            // If we drag chart down, the 'center' of the screen now corresponds to a higher price in the chart's coordinate space.
+            // Actually, Y pixels grow downwards.
+            // Drag Down (+dy) -> We are pulling the chart down.
+            // The price at the center line was P. Now the price P is lower on screen. 
+            // The new price at center line is HIGHER.
+            const priceDelta = dy / state.pixelsPerRupee;
+            state.panOffset.price += priceDelta;
+
+            state.dragStart = { x, y };
+            renderChart();
+        }
+
+        function endDrag() {
+            state.isDragging = false;
+            els.chartArea.classList.remove('dragging');
+        }
+
+        // Mouse Events
+        els.chartArea.addEventListener('mousedown', e => startDrag(e.clientX, e.clientY));
+        window.addEventListener('mousemove', e => moveDrag(e.clientX, e.clientY));
+        window.addEventListener('mouseup', endDrag);
+
+        // --- Zoom State for Touch ---
+        const touchZoom = {
+            active: false,
+            startDistX: 0,
+            startDistY: 0,
+            startValX: 0, 
+            startValY: 0
+        };
+
+        function getTouchDists(t1, t2) {
+            return {
+                x: Math.abs(t1.clientX - t2.clientX),
+                y: Math.abs(t1.clientY - t2.clientY)
+            };
+        }
+
+        // Touch Events
+        els.chartArea.addEventListener('touchstart', e => {
+            if (e.touches.length === 2) {
+                // Pinch Start
+                touchZoom.active = true;
+                endDrag(); // Cancel any single finger drag
+                
+                const dists = getTouchDists(e.touches[0], e.touches[1]);
+                touchZoom.startDistX = dists.x;
+                touchZoom.startDistY = dists.y;
+                touchZoom.startValX = state.candleWidth;
+                touchZoom.startValY = state.pixelsPerRupee;
+                
+                e.preventDefault();
+            } else if(e.touches.length === 1) {
+                touchZoom.active = false;
+                startDrag(e.touches[0].clientX, e.touches[0].clientY);
+            }
+        }, {passive:false});
+
+        window.addEventListener('touchmove', e => {
+            if (e.touches.length === 2 && touchZoom.active) {
+                // Pinch Move
+                e.preventDefault();
+                const dists = getTouchDists(e.touches[0], e.touches[1]);
+                
+                // X Zoom (Candle Width)
+                if (touchZoom.startDistX > 20) { // Min distance threshold to avoid jitter
+                    const scale = dists.x / touchZoom.startDistX;
+                    let newVal = touchZoom.startValX * scale;
+                    newVal = Math.max(1, Math.min(newVal, 100)); // Clamp
+                    state.candleWidth = newVal;
+                    state.candleGap = Math.max(1, newVal / 3);
+                    
+                    // Sync Slider
+                    const xSlider = document.getElementById('zoom-x-slider');
+                    // Update slider max if needed to reflect deep zoom
+                    if (newVal > parseFloat(xSlider.max)) xSlider.max = newVal;
+                    xSlider.value = newVal;
+                }
+
+                // Y Zoom (Pixels Per Rupee)
+                if (touchZoom.startDistY > 20) {
+                    const scale = dists.y / touchZoom.startDistY;
+                    let newVal = touchZoom.startValY * scale;
+                    newVal = Math.max(0.1, Math.min(newVal, 500)); // Clamp
+                    state.pixelsPerRupee = newVal;
+
+                    // Sync Slider
+                    const ySlider = document.getElementById('zoom-y-slider');
+                    if (newVal > parseFloat(ySlider.max)) ySlider.max = newVal;
+                    ySlider.value = newVal;
+                }
+
+                if (!state.isPlaying) renderChart();
+
+            } else if(e.touches.length === 1 && !touchZoom.active) {
+                moveDrag(e.touches[0].clientX, e.touches[0].clientY);
+            }
+        }, {passive:false});
+
+        window.addEventListener('touchend', e => {
+            if (e.touches.length < 2) {
+                touchZoom.active = false;
+            }
+            if (e.touches.length === 0) {
+                endDrag();
+            }
+        });
+
+
+        // Zoom Sliders
+        document.getElementById('zoom-x-slider').addEventListener('input', function(e) {
+            state.candleWidth = parseInt(e.target.value);
+            state.candleGap = Math.max(1, state.candleWidth / 3);
+            if (!state.isPlaying) renderChart();
+        });
+
+        document.getElementById('zoom-y-slider').addEventListener('input', function(e) {
+            state.pixelsPerRupee = parseInt(e.target.value);
+            if (!state.isPlaying) renderChart();
+        });
+
+        // Mouse Wheel Zoom
+        els.chartArea.addEventListener('wheel', function(e) {
+            e.preventDefault();
+            if (e.shiftKey) {
+                const dir = e.deltaY > 0 ? -1 : 1;
+                state.pixelsPerRupee = Math.max(1, state.pixelsPerRupee + (dir * 5));
+                document.getElementById('zoom-y-slider').value = state.pixelsPerRupee;
+            } else {
+                const dir = e.deltaY > 0 ? -1 : 1;
+                const newW = state.candleWidth + dir;
+                if (newW > 1 && newW < 100) {
+                    state.candleWidth = newW;
+                    state.candleGap = Math.max(1, newW/3);
+                    document.getElementById('zoom-x-slider').value = state.candleWidth;
+                }
+            }
+            if (!state.isPlaying) renderChart();
+        }, {passive: false});
+
+        // Resize
+        window.addEventListener('resize', () => {
+            if (!state.isPlaying) renderChart();
+        });
+
+        // File Input
+        document.getElementById('fileInput').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(evt) {
+                try {
+                    const json = JSON.parse(evt.target.result);
+                    if (Array.isArray(json) && json.length > 0 && json[0].price !== undefined) {
+                        state.rawTicks = json.sort((a,b) => a.time - b.time);
+                        state.tickIndex = 0;
+                        state.processedCandles = [];
+                        state.currentCandle = null;
+                        state.isPlaying = false;
+                        els.btnPlay.textContent = "PLAY";
+                        els.status.textContent = `Loaded ${state.rawTicks.length} Ticks From JSON File.`;
+                        
+                        const startP = state.rawTicks[0].price;
+                        state.pixelsPerRupee = (els.chartArea.clientHeight / 2) / (startP * 0.005);
+                        renderChart();
+                    } else {
+                        alert("Invalid JSON. Expected array of {time, price} objects.");
+                    }
+                } catch (err) {
+                    alert("Error parsing JSON.");
+                }
+            };
+            reader.readAsText(file);
+        });
+
+        // --- AI Features ---
+        let apiKey = '';
+        async function callGemini(aiPrompt) {
+            apiKey = !apiKey ? prompt('Enter Gemini API Key:') : apiKey;
+            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent`;
+            try {
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: { 'x-goog-api-key': apiKey, 'Content-Type': 'application/json'},
+                    body: JSON.stringify({ contents: [{ parts: [{ text: aiPrompt }] }] })
+                });
+                const data = await response.json();
+                return data.candidates[0].content.parts[0].text;
+            } catch (e) {
+                console.error(e);
+                return "Error connecting to AI.";
+            }
+        }
+
+        els.btnAI.addEventListener('click', async function() {
+            if (state.processedCandles.length < 30) {
+                alert("Please play the simulation longer to generate enough candle(30 or more) data.");
+                return;
+            }
+            state.isPlaying = false;
+            els.btnPlay.textContent = "PLAY";
+            els.aiModal.style.display = 'flex';
+            els.aiResult.innerHTML = '<div class="loading">Analyzing market structure...</div>';
+
+            const history = state.processedCandles.slice(-30);
+            const dataStr = history.map((c, i) => 
+                `T${i}: O:${c.open.toFixed(2)} H:${c.high.toFixed(2)} L:${c.low.toFixed(2)} C:${c.close.toFixed(2)}`
+            ).join('\n');
+
+            const aiPrompt = `
+                You are a veteran trader. Analyze this tick-replay data (last 30 candles).
+                Current Price: ${state.currentPrice.toFixed(2)}
+                Data: ${dataStr}
+                Output format:
+                <strong>Trend:</strong> [Bullish/Bearish]
+                <strong>Levels:</strong> [Support/Resistance]
+                <strong>Insight:</strong> [Patterns like Engulfing, etc.]
+                <strong>Prediction:</strong> [Short term bias]
+            `;
+
+            const text = await callGemini(aiPrompt);
+            els.aiResult.innerHTML = text.replace(/\n/g, '<br>');
+        });
+
+        // Start
+        els.chartArea.classList.add('paused');
+        renderChart();
+
+        function toggleToolbar() {
+            const toolbar = document.getElementById('toolbar');
+            const status = toolbar.style.display;
+            toolbar.style.display = status === 'none' ? 'block' : 'none';
+        }
+        
+        function urlOrFile() {
+            const urlInput = document.getElementById('urlInput');
+            const fileInput = document.getElementById('fileInput');
+            const stat = {
+                url: urlInput.value,
+                file: fileInput.files[0],
+                urlVisible: urlInput.style.display,
+                fileVisible: fileInput.style.display
+            }
+            if (stat.urlVisible === 'none') {
+                fileInput.style.display = 'none';
+                urlInput.style.display = 'block';
+                // urlInput.value = '';
+            } else if (stat.fileVisible === 'none') {
+                urlInput.style.display = 'none';
+                fileInput.style.display = 'block';
+            }
+        }
+
+        async function fetchJsonData() {
+            // https://api.india.delta.exchange/v2/history/candles?resolution=1m&symbol=BTCUSD&start=1763721501&end=1763733501
+            const urlInput = document.getElementById('urlInput');
+            const url = urlInput.value.startsWith('https://api.india.delta.exchange/v2/history/candles') ? urlInput.value : `https://api.india.delta.exchange/v2/history/candles?resolution=1m&symbol=BTCUSD&start=${ Math.round(Date.now() / 1000) - 1200 }&end=${ Math.round(Date.now() / 1000) - 12000 }`;
+            const response = await fetch(url);
+            const json = await response.json();
+            const ticks = [];
+            for (const candle of json.result) {
+                const { time, open, high, low, close } = candle;
+                const nearestToClose = Math.abs(close - high) < Math.abs(close - low) ? high : low;
+                const t1 = time + 20, t2 = time + 40;
+                ticks.push({ time: time * 1000, price: open }, { time: t1 * 1000, price: high === nearestToClose ? low : high}, { time: t2 * 1000, price: nearestToClose });
+            }
+            state.rawTicks = ticks.sort((a,b) => a.time - b.time);
+            state.tickIndex = 0;
+            state.processedCandles = [];
+            state.currentCandle = null;
+            state.isPlaying = false;
+            els.btnPlay.textContent = "PLAY";
+            els.status.textContent = `Loaded ${state.rawTicks.length} Ticks From JSON Link.`;
+            const startP = state.rawTicks[0].price;
+            state.pixelsPerRupee = (els.chartArea.clientHeight / 2) / (startP * 0.005);
+            renderChart();
+            urlInput.value = '';
+            els.btnPlay.click();                
+        }
+
+    </script>
+</body>
+</html>
