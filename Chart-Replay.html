@@ -965,15 +965,14 @@
 
         async function fetchJsonData() {
             const urlInput = document.getElementById('urlInput');
-            const { symbol, resolution, duration } = state.jsonSettings;
-            const period = +resolution.split('_')[0];
+            const { symbol, resolution: res, duration } = state.jsonSettings;
+            const resolution = +res.split('_')[0];
             const linksArray = [];
-            const candleLength = duration / (period * 60);
-            const parts = Math.ceil(candleLength / 2000); // Delta exchange API has a limit of 2000 candles per request.
+            const parts = Math.ceil(duration / (60 * 2000)); // Delta exchange API has a limit of 2000 candles per request. And only 1 minute (60s) resolution candles (lowest available) are being fetched to increase number of ticks per candle resulting in increased price action.
             let start = Math.round(Date.now() / 1000) - duration, end = 0;
             const nowTime = Math.round(Date.now() / 1000);
             for (let i = 1; i <= parts; i++) {
-                const tempEnd = start + ( period * 60 * 2000 );
+                const tempEnd = start + ( 60 * 2000 );
                 end = tempEnd < nowTime ? tempEnd : nowTime;
                 const url = urlInput.value.startsWith('https://api.india.delta.exchange/v2/history/candles') ? urlInput.value : `https://api.india.delta.exchange/v2/history/candles?resolution=1m&symbol=${symbol}&start=${start}&end=${end}`;
                 linksArray.push(url);
