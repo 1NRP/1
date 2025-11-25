@@ -21,12 +21,13 @@
             padding: 0;
             background-color: var(--bg-color);
             color: var(--text-color);
-            font-family: Arial, apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            font-family: Arial, sans-serif;
             overflow: hidden;
             height: 100vh;
             display: flex;
             flex-direction: column;
             user-select: none; /* Prevent text selection during drag */
+            touch-action: none; /* Prevent browser handling of gestures */
         }
 
         /* --- Toolbar --- */
@@ -70,15 +71,9 @@
         #btn-ai:hover { background: linear-gradient(140deg, #02364b, #793c04); }
 
         /* Custom Slider Styling */
-        .slider-group {
-            display: flex;
-            flex-direction: column;
-            border-radius: 10px;
-        }
-        .sliders {
+        .slider {
             display: flex;
             flex-direction: row;
-            /* gap: 8px; */
             align-items: center;
             padding: 4px 8px;
             margin: 2px;
@@ -101,7 +96,7 @@
 
         label { 
             color: #c2bebe; 
-            font-size: 10px; 
+            font-size: 14px; 
             text-transform: uppercase; 
             font-weight: 600;
         }
@@ -147,6 +142,8 @@
             overflow: hidden;
             flex-shrink: 0;
             z-index: 10;
+            cursor: ns-resize;
+            touch-action: none;
         }
 
         /* Static Label Containers */
@@ -177,7 +174,6 @@
         
         /* Cursor changes based on state */
         #chart-area.dragging { cursor: grabbing; }
-        #chart-area.paused { cursor: grab; }
 
         #candles-container {
             position: absolute;
@@ -209,7 +205,6 @@
 
         #current-price-badge {
             position: absolute;
-            top: 50%;
             left: 0; 
             transform: translateY(-50%);
             background-color: var(--accent-color);
@@ -296,13 +291,18 @@
             <option value="1_Min">1 Minute</option>
             <option value="5_Min">5 Minutes</option>
             <option value="15_Min">15 Minutes</option>
+            <option value="60_Min">1 Hour</option>
+            <option value="240_Min">4 Hours</option>
+            <option value="1440_Min">1 Day</option>
         </select>
 
         <select id="selectDuration" class="selectOptions" onchange="state.jsonSettings.duration = +this.value">
-            <option value="21600">6 Hours</option>
             <option value="43200">12 Hours</option>
-            <option value="64800">18 Hours</option>
-            <option value="86400">24 Hours</option>
+            <option value="86400">1 Day</option>
+            <option value="432000">5 Days</option>
+            <option value="864000">10 Days</option>
+            <option value="1296000">15 Days</option>
+            <option value="2592000">30 Days</option>
         </select>
 
     </div>
@@ -318,19 +318,9 @@
         <button id="btn-reset">RESET</button>
         <button id="btn-play">PLAY</button>
         
-        <div class="slider-group">
-          <div class="sliders">
-            <label>∆Speed</label> 
+        <div class="slider">
+            <label>Speed</label> 
             <input type="range" id="speed-slider" min="0" max="100" value="50">
-          </div>
-          <div class="sliders">
-            <label>Zoom X</label>
-            <input type="range" id="zoom-x-slider" min="1" max="20" value="4" step="1">
-          </div>
-          <div class="sliders">
-            <label>Zoom Y</label>
-            <input type="range" id="zoom-y-slider" min="1" max="20" value="4" step="1">
-          </div>
         </div>
         <span id="status-text" style="margin-left : 10px; color: #b8b4b4; font-size: 14px;">No Data</span>
     </div>
@@ -352,32 +342,38 @@
     <script>
         // --- Global State ---
         const state = {
+            // Data
             rawTicks: [],
             processedCandles: [],
             currentCandle: null,
             tickIndex: 0,
-            jsonSettings: { symbol: 'BTCUSD', resolution: '1_Min', duration: 21600 /* 6 Hours */ },
+            jsonSettings: { symbol: 'BTCUSD', resolution: '1_Min', duration: 43200 },
             
+            // Playback
             isPlaying: false,
-            // Playback Speed Control
-            msDelay: 0,            // Delay between frames (Slow mode)
-            ticksPerFrame: 1,      // Ticks processed per frame (Fast mode)
+            msDelay: 0,
+            ticksPerFrame: 1,
             lastFrameTime: 0,
             
-            // Viewport Settings
+            // Viewport & Scale
+            // viewPrice: Price at the exact vertical center of the canvas
+            viewPrice: 0,
+            // viewXOffset: Horizontal offset in pixels. 0 means "latest candle is at default position".
+            viewXOffset: 0,
+            
             candleWidth: 12,
             candleGap: 4,
-            pixelsPerRupee: 5, // Adjusts the base of the Zoom level. TODO: Dynamically calculate based on viewport size
+            // pixelsPerPrice: Vertical Zoom Level
+            pixelsPerPrice: 10,
             
-            // Data State
+            // Data Snapshots
             currentPrice: 0,       
             currentTime: 0,
-
-            // Panning State (Only active when paused)
-            panOffset: { x: 0, price: 0 },
+            
+            // Interaction State
             isDragging: false,
             dragStart: { x: 0, y: 0 },
-
+            
             // DOM Optimization
             maxCandlesInDom: 500
         };
@@ -414,6 +410,20 @@
         // Initial Load
         state.rawTicks = generateMockTicks();
         els.status.textContent = `Loaded ${state.rawTicks.length} Ticks (Mock).`;
+        initializeView(state.rawTicks[0].price);
+
+        function initializeView(startPrice) {
+            state.viewPrice = startPrice;
+            // Requirement: Top to Bottom is 10% of Price
+            // Height / pixelsPerPrice = 0.10 * Price
+            // pixelsPerPrice = Height / (0.10 * Price)
+            const h = els.chartArea.clientHeight;
+            if (startPrice > 0 && h > 0) {
+                state.pixelsPerPrice = h / (startPrice * 0.1);
+            } else {
+                state.pixelsPerPrice = 50; // Fallback
+            }
+        }
 
         // --- Core Logic: Tick Processing ---
         function processTick(tick) {
@@ -439,74 +449,63 @@
 
         // --- Rendering System ---
         
-        // Calculate Price from a Y pixel coordinate (Inverse of getY)
-        // Used for calculating what price a static label represents
-        function getPriceFromY(y, height, centerPrice) {
+        // Y = Height/2 + (CenterPrice - Price) * Scale (Standard coordinate system where Y=0 is top)
+        // Correct logic for Y grows Down:
+        // Price > Center -> Y < Center (Up)
+        // Y = CenterPixel - (Price - CenterPrice) * Scale
+        function getY(price, height) {
             const centerY = height / 2;
-            // Formula derived from getY: y = centerY + (centerPrice - price) * scale
-            // (y - centerY) / scale = centerPrice - price
-            // price = centerPrice - (y - centerY) / scale
-            return centerPrice - ((y - centerY) / state.pixelsPerRupee);
+            const diff = price - state.viewPrice;
+            return centerY - (diff * state.pixelsPerPrice);
         }
 
-        // Calculate Y pixel from Price
-        function getY(price, height, centerPrice) {
+        function getPriceFromY(y, height) {
             const centerY = height / 2;
-            const diff = centerPrice - price;
-            return centerY + (diff * state.pixelsPerRupee);
+            // Y = Cy - (P - C) * S
+            // Y - Cy = - (P - C) * S
+            // (Cy - Y) / S = P - C
+            // P = C + (Cy - Y) / S
+            return state.viewPrice + (centerY - y) / state.pixelsPerPrice;
         }
 
         function renderStaticGrid(height) {
-            // Ensure we have the correct number of static elements
-            // We place labels every 50 pixels
-            const stepPixels = 50;
-            const numLabels = Math.ceil(height / stepPixels) + 1;
+            const stepPixels = 60; // Distance between lines
             
-            // Reuse or create elements? Simple approach: Clear and rebuild if count differs greatly,
-            // otherwise just update text. For simplicity/robustness: rebuild grid lines logic purely in render?
-            // Better: Keep DOM simple.
-            
-            // 1. Remove old grid lines (except badge)
-            const existingLabels = els.priceScale.querySelectorAll('.static-label');
-            const existingGrid = els.chartArea.querySelectorAll('.grid-line');
-            
-            // If we want strict static positioning, we just need to ensure 
-            // we have divs at top: 0, 50, 100...
-            
-            // Effective Center Price depends on Play/Pause state
-            // If Playing: strictly state.currentPrice
-            // If Paused: state.currentPrice + state.panOffset.price
-            const effectiveCenterPrice = state.currentPrice + state.panOffset.price;
-            
-            // --- Rebuild DOM if height changed significantly or first run ---
-            // For this "no-library" simulation, simple innerHTML replacement for the grid is fast enough
-            // considering it only happens on resize or just updating text content.
-            
-            // Let's try a cleaner approach: 
-            // Use a container for grid lines and a container for labels inside the parents
-            // But to keep code minimal, let's just update them.
-
-            // Clear old ones
+            // Clear old grid/labels
             els.priceScale.querySelectorAll('.static-label').forEach(e => e.remove());
             els.chartArea.querySelectorAll('.grid-line').forEach(e => e.remove());
 
-            for (let y = 0; y <= height; y += stepPixels) {
-                // Calculate Price at this fixed Y
-                const priceAtLine = getPriceFromY(y, height, effectiveCenterPrice);
-                
-                // Label (Left Sidebar)
-                const label = document.createElement('div');
-                label.className = 'static-label';
-                label.style.top = `${y}px`;
-                label.innerHTML = `<span>${priceAtLine.toFixed(2)}</span>`;
-                els.priceScale.appendChild(label);
-
-                // Grid Line (Chart Area)
-                const grid = document.createElement('div');
-                grid.className = 'grid-line';
-                grid.style.top = `${y}px`;
-                els.chartArea.appendChild(grid);
+            // We need to find the price at the top (y=0) and loop down
+            // But to keep grid lines "stable" while panning, we should snap to round numbers or fixed intervals relative to view
+            // For simplicity in this demo, we just draw lines relative to screen pixels 
+            // but calculated to represent price.
+            
+            // Simple approach: Draw lines at fixed pixel intervals from center
+            const centerY = height / 2;
+            
+            // Go Up from Center
+            for (let y = centerY; y >= 0; y -= stepPixels) {
+                drawGridLine(y, height);
             }
+            // Go Down from Center
+            for (let y = centerY + stepPixels; y <= height; y += stepPixels) {
+                drawGridLine(y, height);
+            }
+        }
+
+        function drawGridLine(y, height) {
+            const price = getPriceFromY(y, height);
+            
+            const label = document.createElement('div');
+            label.className = 'static-label';
+            label.style.top = `${y}px`;
+            label.innerHTML = `<span>${price.toFixed(2)}</span>`;
+            els.priceScale.appendChild(label);
+
+            const grid = document.createElement('div');
+            grid.className = 'grid-line';
+            grid.style.top = `${y}px`;
+            els.chartArea.appendChild(grid);
         }
 
         function renderChart() {
@@ -515,21 +514,11 @@
             const width = els.chartArea.clientWidth;
             const height = els.chartArea.clientHeight;
             
-            // Effective View Parameters
-            // If Playing: Pan is locked to 0
-            if (state.isPlaying) {
-                state.panOffset = { x: 0, price: 0 };
-            }
-
-            const effectiveCenterPrice = state.currentPrice + state.panOffset.price;
-            
-            // 1. Render Static Grid & Labels
+            // 1. Grid
             renderStaticGrid(height);
 
-            // 2. Update Badge & Center Line
-            // Badge always shows current price, but its Y position moves if we pan Y
-            // getY returns pixel relative to container top
-            const currentPriceY = getY(state.currentPrice, height, effectiveCenterPrice);
+            // 2. Current Price Line (Badges)
+            const currentPriceY = getY(state.currentPrice, height);
             
             els.centerLine.style.display = 'block';
             els.centerLine.style.top = `${currentPriceY}px`;
@@ -538,50 +527,45 @@
             els.priceBadge.textContent = state.currentPrice.toFixed(2);
             els.priceBadge.style.top = `${currentPriceY}px`;
 
-            // 3. Render Candles
+            // 3. Candles
             els.candlesDiv.innerHTML = '';
             const fragment = document.createDocumentFragment();
 
-            // Combine history + current
             const allCandles = [...state.processedCandles];
             if (state.currentCandle) allCandles.push(state.currentCandle);
 
-            // DOM Limiting
             let renderList = allCandles;
             const maxLimit = state.maxCandlesInDom || 10000;
             if (allCandles.length > maxLimit) {
                 renderList = allCandles.slice(-maxLimit);
             }
 
-            // X Position Logic
-            // Base head is at 70% width.
-            // Pan X adds to this.
-            const headX = (width * 0.7) + state.panOffset.x;
+            // Position Logic
+            // The "Latest" candle default position is around 80% width.
+            // viewXOffset adjusts this.
+            // If viewXOffset = 0, latest is at 90%.
+            // If viewXOffset > 0, we moved candles Right (latest is further right/offscreen)
+            // If viewXOffset < 0, we moved candles Left (looking at history)
+            
+            const baseHeadX = width * 0.9;
+            const headX = baseHeadX + state.viewXOffset;
             const step = state.candleWidth + state.candleGap;
 
-            // Iterate backwards from latest
             for (let i = renderList.length - 1; i >= 0; i--) {
                 const candle = renderList[i];
-                
-                // Calculate X
-                // Distance from "Head" (latest candle)
                 const indexOffset = (renderList.length - 1) - i;
                 const x = headX - (indexOffset * step);
 
-                // Off-screen check (Right side)
                 if (x > width + state.candleWidth) continue;
-                // Off-screen check (Left side)
-                if (x < -state.candleWidth) break; // Stop loop if we went past left edge
+                if (x < -state.candleWidth) break;
 
-                // Y Coordinates based on effectiveCenterPrice (which includes pan)
-                const yOpen = getY(candle.open, height, effectiveCenterPrice);
-                const yClose = getY(candle.close, height, effectiveCenterPrice);
-                const yHigh = getY(candle.high, height, effectiveCenterPrice);
-                const yLow = getY(candle.low, height, effectiveCenterPrice);
+                const yOpen = getY(candle.open, height);
+                const yClose = getY(candle.close, height);
+                const yHigh = getY(candle.high, height);
+                const yLow = getY(candle.low, height);
 
                 const isBull = candle.close >= candle.open;
                 
-                // Element
                 const el = document.createElement('div');
                 el.className = `candle ${isBull ? 'bullish' : 'bearish'}`;
                 el.style.left = `${x}px`;
@@ -589,14 +573,12 @@
                 el.style.height = "100%"; 
                 el.style.top = "0";
 
-                // Wick
                 const wick = document.createElement('div');
                 wick.className = 'wick';
-                wick.style.top = `${yHigh}px`;
-                wick.style.height = `${Math.max(1, yLow - yHigh)}px`;
+                wick.style.top = `${Math.min(yHigh, yLow)}px`;
+                wick.style.height = `${Math.abs(yLow - yHigh)}px`;
                 wick.style.left = '50%';
 
-                // Body
                 const body = document.createElement('div');
                 body.className = 'body';
                 const bodyTop = Math.min(yOpen, yClose);
@@ -611,17 +593,13 @@
             els.candlesDiv.appendChild(fragment);
         }
 
-        // --- Loop & Controls ---
-
+        // --- Loop ---
         function loop(timestamp) {
             if (!state.isPlaying) return;
 
-            // Speed Control Logic
-            // If msDelay > 0, we only tick if enough time passed
             const elapsed = timestamp - state.lastFrameTime;
 
             if (elapsed >= state.msDelay) {
-                // Process ticks
                 for (let i = 0; i < state.ticksPerFrame; i++) {
                     if (state.tickIndex >= state.rawTicks.length) {
                         state.isPlaying = false;
@@ -629,18 +607,15 @@
                         return;
                     }
                     processTick(state.rawTicks[state.tickIndex]);
-                    state.tickIndex++;
                 }
                 state.lastFrameTime = timestamp;
                 renderChart();
             }
-
             requestAnimationFrame(loop);
         }
 
-        // --- Interaction Handlers ---
+        // --- Interaction: Controls ---
 
-        // Play/Pause
         els.btnPlay.addEventListener('click', async function() {
             const jsonLink = document.getElementById('urlInput').value;
             if (jsonLink) {
@@ -648,23 +623,26 @@
                 return;
             }
             if (state.tickIndex >= state.rawTicks.length) {
+                // Restart logic
                 state.tickIndex = 0;
                 state.processedCandles = [];
                 state.currentCandle = null;
                 state.currentPrice = 0;
+                initializeView(state.rawTicks[0].price);
             }
             
             state.isPlaying = !state.isPlaying;
             this.textContent = state.isPlaying ? "STOP" : "PLAY";
             
-            // Update cursor
-            els.chartArea.classList.toggle('paused', !state.isPlaying);
-            
             if (state.isPlaying) {
+                // If playing, we generally want to snap to latest, but user requested independent Y.
+                // We reset X offset to 0 to follow the candle building? 
+                // Usually "Play" implies follow mode for X.
+                state.viewXOffset = 0; 
                 state.lastFrameTime = performance.now();
                 loop(performance.now());
             } else {
-                renderChart(); // Re-render to allow panning immediately
+                renderChart();
             }
         });
 
@@ -674,205 +652,205 @@
             state.processedCandles = [];
             state.currentCandle = null;
             state.currentPrice = 0;
-            state.panOffset = {x:0, price:0};
+            state.viewXOffset = 0;
             els.btnPlay.textContent = "PLAY";
             els.candlesDiv.innerHTML = '';
-            els.priceScale.innerHTML = ''; // Clear labels
-            els.chartArea.querySelectorAll('.grid-line').forEach(e=>e.remove()); // Clear grid
-            els.centerLine.style.display = 'none';
-            els.priceBadge.style.display = 'none';
             els.status.textContent = "Reset";
-            els.chartArea.className = "paused";
+            
+            if (state.rawTicks.length > 0) {
+                initializeView(state.rawTicks[0].price);
+            }
+            renderChart();
         });
 
-        // Speed Slider (Dual Logic)
         document.getElementById('speed-slider').addEventListener('input', function(e) {
             const val = parseInt(e.target.value);
             if (val > 50) {
-                // Fast Mode (1 to 50 ticks per frame)
                 state.msDelay = 0;
-                state.ticksPerFrame = Math.max(1, val - 49); // 1 to 51
+                state.ticksPerFrame = Math.max(1, val - 49);
             } else {
-                // Slow Mode (Delay between 0ms to 1000ms)
                 state.ticksPerFrame = 1;
-                // Map 50->0 to 0ms->1000ms
                 state.msDelay = (50 - val) * 20; 
             }
         });
 
-        // Max Candles Input
         els.maxCandlesInput.addEventListener('change', (e) => {
             const val = parseInt(e.target.value);
             state.maxCandlesInDom = val > 0 ? val : 10000;
             if (!state.isPlaying) renderChart();
         });
 
-        // Drag & Pan Logic (Desktop & Touch)
-        function startDrag(x, y) {
-            if (state.isPlaying) return;
-            state.isDragging = true;
-            state.dragStart = { x, y };
+        // --- Interaction: Chart Area Pan & Zoom ---
+
+        // Double Click to Recenter Price.
+        els.chartArea.addEventListener('dblclick', () => {
+             state.viewPrice = state.currentPrice;
+             state.viewXOffset = 0;
+             renderChart();
+        });
+
+        // Mouse Wheel (Zoom X)
+        els.chartArea.addEventListener('wheel', (e) => {
+            e.preventDefault();
+            const dir = Math.sign(e.deltaY); // +1 down, -1 up
+            const zoomFactor = 1.1;
+            
+            if (dir < 0) {
+                // Zoom In
+                state.candleWidth *= zoomFactor;
+            } else {
+                // Zoom Out
+                state.candleWidth /= zoomFactor;
+            }
+            
+            // Minimal safety check so it doesn't disappear
+            if (state.candleWidth < 0.5) state.candleWidth = 0.5;
+            state.candleGap = state.candleWidth / 3;
+            
+            renderChart();
+        }, { passive: false });
+
+
+        // Drag Logic (Chart Area)
+        const chartTouch = { active: false, lastX: 0, lastY: 0, initialDist: 0, initialWidth: 0 };
+
+        els.chartArea.addEventListener('mousedown', (e) => {
+            chartTouch.active = true;
+            chartTouch.lastX = e.clientX;
+            chartTouch.lastY = e.clientY;
             els.chartArea.classList.add('dragging');
+        });
+
+        window.addEventListener('mousemove', (e) => {
+            if (!chartTouch.active) return;
+            
+            const dx = e.clientX - chartTouch.lastX;
+            const dy = e.clientY - chartTouch.lastY;
+
+            // X Pan: Simply add pixels to offset
+            state.viewXOffset += dx;
+
+            // Y Pan: "Drag the paper".
+            // If I drag mouse down (+dy), I am pulling the paper down.
+            // The price at the viewport center should INCREASE (we are seeing higher prices that were above).
+            // Wait, coordinate system: Y=0 is Top. Y increases down.
+            // Price at Top is High. Price at Bottom is Low.
+            // If I drag DOWN, I want to see what is ABOVE the viewport (Higher prices).
+            // So ViewPrice should Increase.
+            
+            // Let's verify:
+            // Mouse moves down +10px.
+            // View should shift so that pixels move down +10px.
+            // A candle at Y=100 should move to Y=110.
+            // OldY = C - (P - VP_old)*S
+            // NewY = C - (P - VP_new)*S
+            // NewY - OldY = (VP_new - VP_old) * S
+            // 10 = dVP * S => dVP = 10 / S.
+            // So ViewPrice += dy / pixelsPerPrice.
+            
+            state.viewPrice += dy / state.pixelsPerPrice;
+
+            chartTouch.lastX = e.clientX;
+            chartTouch.lastY = e.clientY;
+            renderChart();
+        });
+
+        window.addEventListener('mouseup', () => {
+            chartTouch.active = false;
+            els.chartArea.classList.remove('dragging');
+        });
+
+        // Touch - Chart Area (Pan & Pinch)
+        function getDist(t1, t2) {
+            return Math.hypot(t1.clientX - t2.clientX, t1.clientY - t2.clientY);
         }
 
-        function moveDrag(x, y) {
-            if (!state.isDragging || state.isPlaying) return;
+        els.chartArea.addEventListener('touchstart', (e) => {
+            if (e.touches.length === 1) {
+                chartTouch.active = true;
+                chartTouch.lastX = e.touches[0].clientX;
+                chartTouch.lastY = e.touches[0].clientY;
+            } else if (e.touches.length === 2) {
+                chartTouch.active = false; // Stop panning
+                chartTouch.initialDist = getDist(e.touches[0], e.touches[1]);
+                chartTouch.initialWidth = state.candleWidth;
+            }
+        }, { passive: false });
+
+        els.chartArea.addEventListener('touchmove', (e) => {
+            e.preventDefault(); 
+            if (e.touches.length === 1 && chartTouch.active) {
+                const dx = e.touches[0].clientX - chartTouch.lastX;
+                const dy = e.touches[0].clientY - chartTouch.lastY;
+                
+                state.viewXOffset += dx;
+                state.viewPrice += dy / state.pixelsPerPrice;
+                
+                chartTouch.lastX = e.touches[0].clientX;
+                chartTouch.lastY = e.touches[0].clientY;
+                renderChart();
+            } else if (e.touches.length === 2) {
+                const dist = getDist(e.touches[0], e.touches[1]);
+                if (dist > 10 && chartTouch.initialDist > 10) {
+                    const scale = dist / chartTouch.initialDist;
+                    state.candleWidth = chartTouch.initialWidth * scale;
+                    if (state.candleWidth < 0.5) state.candleWidth = 0.5;
+                    state.candleGap = state.candleWidth / 3;
+                    renderChart();
+                }
+            }
+        }, { passive: false });
+
+        els.chartArea.addEventListener('touchend', (e) => {
+            if (e.touches.length === 0) chartTouch.active = false;
+        });
+
+        // --- Interaction: Price Scale Zoom (Vertical) ---
+
+        const scaleDrag = { active: false, lastY: 0 };
+
+        function handleScaleStart(y) {
+            scaleDrag.active = true;
+            scaleDrag.lastY = y;
+        }
+
+        function handleScaleMove(y) {
+            if (!scaleDrag.active) return;
+            const dy = y - scaleDrag.lastY;
+            // Drag Down (+dy) -> Zoom Out (Smaller Scale)
+            // Drag Up (-dy) -> Zoom In (Larger Scale)
             
-            const dx = x - state.dragStart.x;
-            const dy = y - state.dragStart.y;
+            // Sensitivity
+            const sensitivity = 0.01; 
+            const zoomChange = 1 - (dy * sensitivity);
+            
+            state.pixelsPerPrice *= zoomChange;
+            if (state.pixelsPerPrice < 0.0001) state.pixelsPerPrice = 0.0001;
 
-            // X Pan (Pixels)
-            state.panOffset.x += dx;
-
-            // Y Pan (Convert Pixels to Price)
-            // Dragging DOWN (positive dy) means we want to see HIGHER prices (chart moves down)
-            // So Center Price must INCREASE? 
-            // Let's visualize: Drag down -> Chart moves down -> We see stuff that was above.
-            // If we drag chart down, the 'center' of the screen now corresponds to a higher price in the chart's coordinate space.
-            // Actually, Y pixels grow downwards.
-            // Drag Down (+dy) -> We are pulling the chart down.
-            // The price at the center line was P. Now the price P is lower on screen. 
-            // The new price at center line is HIGHER.
-            const priceDelta = dy / state.pixelsPerRupee;
-            state.panOffset.price += priceDelta;
-
-            state.dragStart = { x, y };
+            scaleDrag.lastY = y;
             renderChart();
         }
 
-        function endDrag() {
-            state.isDragging = false;
-            els.chartArea.classList.remove('dragging');
-        }
+        els.priceScale.addEventListener('mousedown', e => handleScaleStart(e.clientY));
+        window.addEventListener('mousemove', e => { if (scaleDrag.active) handleScaleMove(e.clientY); });
+        window.addEventListener('mouseup', () => scaleDrag.active = false);
 
-        // Mouse Events
-        els.chartArea.addEventListener('mousedown', e => startDrag(e.clientX, e.clientY));
-        window.addEventListener('mousemove', e => moveDrag(e.clientX, e.clientY));
-        window.addEventListener('mouseup', endDrag);
-
-        // --- Zoom State for Touch ---
-        const touchZoom = {
-            active: false,
-            startDistX: 0,
-            startDistY: 0,
-            startValX: 0, 
-            startValY: 0
-        };
-
-        function getTouchDists(t1, t2) {
-            return {
-                x: Math.abs(t1.clientX - t2.clientX),
-                y: Math.abs(t1.clientY - t2.clientY)
-            };
-        }
-
-        // Touch Events
-        els.chartArea.addEventListener('touchstart', e => {
-            if (e.touches.length === 2) {
-                // Pinch Start
-                touchZoom.active = true;
-                endDrag(); // Cancel any single finger drag
-                
-                const dists = getTouchDists(e.touches[0], e.touches[1]);
-                touchZoom.startDistX = dists.x;
-                touchZoom.startDistY = dists.y;
-                touchZoom.startValX = state.candleWidth;
-                touchZoom.startValY = state.pixelsPerRupee;
-                
-                e.preventDefault();
-            } else if(e.touches.length === 1) {
-                touchZoom.active = false;
-                startDrag(e.touches[0].clientX, e.touches[0].clientY);
-            }
-        }, {passive:false});
-
-        window.addEventListener('touchmove', e => {
-            if (e.touches.length === 2 && touchZoom.active) {
-                // Pinch Move
-                e.preventDefault();
-                const dists = getTouchDists(e.touches[0], e.touches[1]);
-                
-                // X Zoom (Candle Width)
-                if (touchZoom.startDistX > 20) { // Min distance threshold to avoid jitter
-                    const scale = dists.x / touchZoom.startDistX;
-                    let newVal = touchZoom.startValX * scale;
-                    newVal = Math.max(1, Math.min(newVal, 100)); // Clamp
-                    state.candleWidth = newVal;
-                    state.candleGap = Math.max(1, newVal / 3);
-                    
-                    // Sync Slider
-                    const xSlider = document.getElementById('zoom-x-slider');
-                    // Update slider max if needed to reflect deep zoom
-                    if (newVal > parseFloat(xSlider.max)) xSlider.max = newVal;
-                    xSlider.value = newVal;
-                }
-
-                // Y Zoom (Pixels Per Rupee)
-                if (touchZoom.startDistY > 20) {
-                    const scale = dists.y / touchZoom.startDistY;
-                    let newVal = touchZoom.startValY * scale;
-                    newVal = Math.max(0.1, Math.min(newVal, 500)); // Clamp
-                    state.pixelsPerRupee = newVal;
-
-                    // Sync Slider
-                    const ySlider = document.getElementById('zoom-y-slider');
-                    if (newVal > parseFloat(ySlider.max)) ySlider.max = newVal;
-                    ySlider.value = newVal;
-                }
-
-                if (!state.isPlaying) renderChart();
-
-            } else if(e.touches.length === 1 && !touchZoom.active) {
-                moveDrag(e.touches[0].clientX, e.touches[0].clientY);
-            }
-        }, {passive:false});
-
-        window.addEventListener('touchend', e => {
-            if (e.touches.length < 2) {
-                touchZoom.active = false;
-            }
-            if (e.touches.length === 0) {
-                endDrag();
-            }
-        });
-
-
-        // Zoom Sliders
-        document.getElementById('zoom-x-slider').addEventListener('input', function(e) {
-            state.candleWidth = parseInt(e.target.value);
-            state.candleGap = Math.max(1, state.candleWidth / 3);
-            if (!state.isPlaying) renderChart();
-        });
-
-        document.getElementById('zoom-y-slider').addEventListener('input', function(e) {
-            state.pixelsPerRupee = parseInt(e.target.value);
-            if (!state.isPlaying) renderChart();
-        });
-
-        // Mouse Wheel Zoom
-        els.chartArea.addEventListener('wheel', function(e) {
+        els.priceScale.addEventListener('touchstart', e => {
             e.preventDefault();
-            if (e.shiftKey) {
-                const dir = e.deltaY > 0 ? -1 : 1;
-                state.pixelsPerRupee = Math.max(1, state.pixelsPerRupee + (dir * 5));
-                document.getElementById('zoom-y-slider').value = state.pixelsPerRupee;
-            } else {
-                const dir = e.deltaY > 0 ? -1 : 1;
-                const newW = state.candleWidth + dir;
-                if (newW > 1 && newW < 100) {
-                    state.candleWidth = newW;
-                    state.candleGap = Math.max(1, newW/3);
-                    document.getElementById('zoom-x-slider').value = state.candleWidth;
-                }
-            }
-            if (!state.isPlaying) renderChart();
-        }, {passive: false});
+            if(e.touches.length === 1) handleScaleStart(e.touches[0].clientY);
+        }, { passive: false });
+        els.priceScale.addEventListener('touchmove', e => {
+            e.preventDefault();
+            if(e.touches.length === 1) handleScaleMove(e.touches[0].clientY);
+        }, { passive: false });
+        els.priceScale.addEventListener('touchend', () => scaleDrag.active = false);
 
-        // Resize
-        window.addEventListener('resize', () => {
-            if (!state.isPlaying) renderChart();
-        });
 
+        // --- Resize ---
+        window.addEventListener('resize', () => renderChart());
+
+        // --- File/AI Handlers (Existing) ---
+        
         // File Input
         document.getElementById('fileInput').addEventListener('change', function(e) {
             const file = e.target.files[0];
@@ -889,9 +867,7 @@
                         state.isPlaying = false;
                         els.btnPlay.textContent = "PLAY";
                         els.status.textContent = `Loaded ${state.rawTicks.length} Ticks From JSON File.`;
-                        
-                        const startP = state.rawTicks[0].price;
-                        state.pixelsPerRupee = (els.chartArea.clientHeight / 2) / (startP * 0.005);
+                        initializeView(state.rawTicks[0].price);
                         renderChart();
                     } else {
                         alert("Invalid JSON. Expected array of {time, price} objects.");
@@ -903,7 +879,7 @@
             reader.readAsText(file);
         });
 
-        // --- AI Features ---
+        // AI
         let apiKey = '';
         async function callGemini(aiPrompt) {
             apiKey = !apiKey ? prompt('Enter Gemini API Key:') : apiKey;
@@ -953,23 +929,13 @@
             els.aiResult.innerHTML = simpleMarkdownToHTML(markdown);
         });
 
-        // Start
-        els.chartArea.classList.add('paused');
-        renderChart();
-
         function simpleMarkdownToHTML(markdown) {
-        const html = markdown.replace(/\*\*(.+?)\*\*/g, '<b>$1</b>') // Bold: **text**
-            // Italic: *text*
+        const html = markdown.replace(/\*\*(.+?)\*\*/g, '<b>$1</b>')
             .replace(/\*(.+?)\*/g, '<i>$1</i>')
-            // Numbered lists: 1. item
             .replace(/^\d+\.\s+(.+)$/gm, '<li>$1</li>')
-            // Unordered lists: - item
             .replace(/^- (.+)$/gm, '<li>$1</li>')
-            // Newlines before <li> to <ul> (group lists into <ul> blocks)
             .replace(/(<li>[\s\S]+?<\/li>)/g, '<ul>$1</ul>')
-            // Double dash for horizontal lines (optional, not shown in your image)
             .replace(/^---+$/gm, '<hr>')
-            // Simple newlines to <br> (add <br> except for lists)
             .replace(/\n(?!<\/?ul>|<\/?li>)/g, '<br>');
             return html;
         }
@@ -990,7 +956,6 @@
                 fileInput.style.display = 'none';
                 urlInput.style.display = 'block';
                 jsonSettings.style.display = 'none';
-                // urlInput.value = '';
             } else {
                 urlInput.style.display = 'none';
                 fileInput.style.display = 'block';
@@ -999,32 +964,51 @@
         }
 
         async function fetchJsonData() {
-            // https://api.india.delta.exchange/v2/history/candles?resolution=1m&symbol=BTCUSD&start=1763721501&end=1763733501
             const urlInput = document.getElementById('urlInput');
-            const { symbol, duration } = state.jsonSettings;
-            const url = urlInput.value.startsWith('https://api.india.delta.exchange/v2/history/candles') ? urlInput.value : `https://api.india.delta.exchange/v2/history/candles?resolution=1m&symbol=${symbol}&start=${ Math.round(Date.now() / 1000) - duration }&end=${ Math.round(Date.now() / 1000) }`;
-            const response = await fetch(url);
-            const json = await response.json();
+            const { symbol, resolution, duration } = state.jsonSettings;
+            const period = +resolution.split('_')[0];
+            const linksArray = [];
+            const candleLength = duration / (period * 60);
+            const parts = Math.ceil(candleLength / 2000); // Delta exchange API has a limit of 2000 candles per request.
+            let start = Math.round(Date.now() / 1000) - duration, end = 0;
+            const nowTime = Math.round(Date.now() / 1000);
+            for (let i = 1; i <= parts; i++) {
+                const tempEnd = start + ( period * 60 * 2000 );
+                end = tempEnd < nowTime ? tempEnd : nowTime;
+                const url = urlInput.value.startsWith('https://api.india.delta.exchange/v2/history/candles') ? urlInput.value : `https://api.india.delta.exchange/v2/history/candles?resolution=1m&symbol=${symbol}&start=${start}&end=${end}`;
+                linksArray.push(url);
+                start = end;
+            }
+            const responses = await Promise.all( linksArray.map(url => fetch(url)) );
+            const jsons = await Promise.all(responses.map( async res => (await res.json()).result ));
+            const json = jsons.flat();
             const ticks = [];
-            for (const candle of json.result) {
+            for (const candle of json) {
                 const { time, open, high, low, close } = candle;
                 const nearestToClose = Math.abs(close - high) < Math.abs(close - low) ? high : low;
                 const t1 = time + 20, t2 = time + 40;
                 ticks.push({ time: time * 1000, price: open }, { time: t1 * 1000, price: high === nearestToClose ? low : high}, { time: t2 * 1000, price: nearestToClose });
             }
-            state.rawTicks = ticks.sort((a,b) => a.time - b.time);
+            state.rawTicks = ticks.toSorted((a,b) => a.time - b.time);
             state.tickIndex = 0;
             state.processedCandles = [];
             state.currentCandle = null;
             state.isPlaying = false;
             els.btnPlay.textContent = "PLAY";
             els.status.textContent = `Loaded ${state.rawTicks.length} Ticks From JSON Link.`;
-            const startP = state.rawTicks[0].price;
-            state.pixelsPerRupee = (els.chartArea.clientHeight / 2) / (startP * 0.005);
+            initializeView(state.rawTicks[0].price);
             renderChart();
             urlInput.value = '';
-            els.btnPlay.click();                
+            els.btnPlay.click();
         }
+
+        async function saveChart() {
+            const timePeriod = '', symbol = '', resolution = '', remarks = '';
+            const json = JSON.stringify(state.processedCandles);
+        }
+
+        // Start.
+        renderChart();
 
     </script>
 </body>
