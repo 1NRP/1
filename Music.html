@@ -1,0 +1,152 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta charset="utf-8">
+  <meta name="theme-color" content="#02121b">
+  <link rel="icon" sizes="192x192" href="https://1nrp.github.io/1/Images/N-Logo1.png">
+  <title> Music </title>
+<style>
+body {
+  background-color: #0d2136;
+  color: #fff;
+}
+#players {
+  position: static;
+  top: 0vh;
+  left: 0vw;
+  border: 2px solid #4b040465;
+  border-radius: 10px;
+  background-color: #02121b;
+  width: 90vw;
+  height: 10vh;
+  margin: 2px;
+}
+#header {
+  align-items:center;
+  display:flex;
+  flex-direction:row;
+  border:2px dashed #358;
+  width:99%;
+  height:5vh;
+}
+#txtBox {
+  border:none;
+  color:#863;
+  resize: none;
+  height: 80%;
+  scrollbar-width: none;
+  background-color:#021133;
+  width:80%;
+  outline: 0;
+  font-weight: 700;
+  font-size: 18px;
+}
+#loadBtn:hover {
+  background-color: #223344;
+}
+#loadBtn {
+  border:none;
+  width:20%;
+  font-weight: 900;
+  background-color:#345;
+  font-size:20px;
+  color:#369
+}
+::placeholder {
+  font-size: 18px;
+  font-weight: 700;
+  color: #a4a4a4;
+}
+.singer {
+  color: #707210;
+  font-weight: 700;
+  font-size: 14px; 
+  font-family: monospace; 
+  display: block; 
+  text-align: left
+}
+.songName {
+  color: #766; 
+  font-weight: 700; 
+  display: block; 
+  font-size: 16px; 
+  font-family: Arial, sans-serif; 
+  text-align: left; 
+}
+#viewBox {
+      width: 99%;
+      height: 90vh;
+      border-radius: 4px;
+      border: 2px solid #333;
+      overflow-y: scroll;
+      background-color: #02121b;
+      margin: 4px 0px 2px 0px;
+      display: flex;
+      flex-wrap: wrap;
+      overflow-x: auto;
+      flex-direction: row;
+}
+.imgBox {
+    width: 100%;
+    height: auto;
+    margin: 2px;
+}
+.image {
+      max-width: 100%;
+      min-width: 70%;
+      height: auto;
+      border-radius: 4px;
+    }
+</style>
+</head>
+<body>
+  <audio id="player" style="color: #0d2136; width: 90vw; height: 10vh; margin: 2px " controls controlsList="nofullscreen" poster="img/logo.jpg" tabindex="0" loop="loop" src="" width="100%" muted autoplay></audio>
+
+  <div id="header">
+    <textarea id='txtBox' placeholder="Example: Kaabil" value=""></textarea>
+    <button id='loadBtn' onclick="viewImages()">LOAD</button>
+  </div>
+
+  <div id="viewBox" ondblclick=" document.getElementById('player').src ='' "></div>
+
+<script>
+// https://api.vreden.my.id/api/v1/download/youtube/audio?url=https://www.youtube.com/watch?v=CPWEyB1Jl9g&quality=128
+// https://www.youtube.com/watch?v=CPWEyB1Jl9g
+
+// Fetch JSON and view thumbnails.
+async function viewImages() {
+  let songName = document.getElementById('txtBox').value;
+  songName = songName ? songName : 'Kaabil';
+  const req = await fetch('https://1nrp.val.run/songList' + '?query=' + songName);
+  const media = await req.json();
+  document.getElementById('viewBox').innerHTML = '';
+  let count = 1;
+  for ( const song of media ) {
+    if ( song.type == 'SONG' || song.type == 'VIDEO' ) {
+      const { name, videoId, artist: { name: singer }, thumbnails: [{ url: image }] } = song;
+      const box = document.createElement('div');
+      box.className = 'imgBox';
+      box.innerHTML = ` 
+        <img src="${image}" onclick="PlayAudio('${videoId}')" alt="Thumbnail Image" class="image">
+        <span class="songName">${count} - ${name}</span>
+        <span class="singer">${singer}</span>
+      `;
+      document.getElementById('viewBox').appendChild(box);
+      count++;
+    }
+  }
+}
+
+async function PlayAudio(videoId) {
+    const res = await fetch('https://1nrp.val.run/songUrl' + '?vid=' + videoId);
+    const data = await res.json();
+    const { link, processingTime } = data;
+    const player = document.getElementById('player');
+    player.src = link;
+}
+
+</script>
+</body>
+</html>
