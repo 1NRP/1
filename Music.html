@@ -11,17 +11,16 @@
 body {
   background-color: #0d2136;
   color: #fff;
+  scrollbar-width: none;
+  font-family: Arial, monospace, sans-serif;
 }
-#players {
-  position: static;
-  top: 0vh;
-  left: 0vw;
-  border: 2px solid #4b040465;
-  border-radius: 10px;
-  background-color: #02121b;
-  width: 90vw;
-  height: 10vh;
-  margin: 2px;
+#player {
+  border: 4px solid #6aa9;
+  border-radius: 50px;
+  background-color: #08f;
+  width: 94vw;
+  max-height: 10vh;
+  margin: -4px 0px 2px 0px;
 }
 #header {
   align-items:center;
@@ -41,7 +40,7 @@ body {
   width:80%;
   outline: 0;
   font-weight: 700;
-  font-size: 18px;
+  font-size: 22px;
 }
 #loadBtn:hover {
   background-color: #223344;
@@ -49,83 +48,130 @@ body {
 #loadBtn {
   border:none;
   width:20%;
+  height: 100%;
   font-weight: 900;
   background-color:#345;
   font-size:20px;
   color:#369
 }
 ::placeholder {
-  font-size: 18px;
+  font-size: 22px;
   font-weight: 700;
   color: #a4a4a4;
 }
 .singer {
-  color: #707210;
+  color: #12777a;
   font-weight: 700;
   font-size: 14px; 
-  font-family: monospace; 
-  display: block; 
+  font-family: monospace, sans-serif; 
   text-align: left
 }
 .songName {
-  color: #766; 
-  font-weight: 700; 
-  display: block; 
+  color: #915959;
+  font-weight: 700;
   font-size: 16px; 
   font-family: Arial, sans-serif; 
   text-align: left; 
 }
 #viewBox {
-      width: 99%;
-      height: 90vh;
-      border-radius: 4px;
-      border: 2px solid #333;
-      overflow-y: scroll;
-      background-color: #02121b;
-      margin: 4px 0px 2px 0px;
-      display: flex;
-      flex-wrap: wrap;
-      overflow-x: auto;
-      flex-direction: row;
+  width: 99%;
+  height: 80vh;
+  border-radius: 4px;
+  border: 2px solid #333;
+  overflow-y: scroll;
+  scrollbar-width: none;
+  background-color: #02121b;
+  margin: 4px 0px 2px 0px;
+  display: flex;
+  flex-wrap: wrap;
+  overflow-x: auto;
+  flex-direction: row;
+}
+.blurElements {
+  filter: blur(10px);
 }
 .imgBox {
-    width: 100%;
-    height: auto;
-    margin: 2px;
+  max-width: 100%;
+  min-width: 45%;
+  display: flex;
+  flex-direction: column;
+  margin: 2px;
 }
 .image {
-      max-width: 100%;
-      min-width: 70%;
-      height: auto;
-      border-radius: 4px;
-    }
+  height: auto;
+  border-radius: 4px;
+}
+.loader {
+  position: fixed;
+  top: 40%;
+  width: 40%;
+  left: calc( (100% - 40%) / 2 );
+  display: inline-grid;
+  z-index: 10;
+  aspect-ratio: 1;
+  clip-path: polygon(100% 50%,85.36% 85.36%,50% 100%,14.64% 85.36%,0% 50%,14.64% 14.64%,50% 0%,85.36% 14.64%);
+  /* clip-path: square; */
+  /* clip-path: polygon(100% 50%, 50% 100%, 0% 50%, 50% 0%); */
+  background: #ce0404;
+  animation: Loading 2s infinite linear;
+}
+.loader:before,
+.loader:after {
+  content:"";
+  grid-area: 1/1;
+  background: #08ebeb;
+  clip-path: inherit;
+  margin: 10%;
+  animation: inherit;
+  animation-duration: 8s;
+}
+.loader:after {
+  background: #043772;
+  margin: 25%;
+  animation-duration: 12s;
+}
+
+@keyframes Loading {
+  to { rotate: 1turn } 
+}
 </style>
 </head>
 <body>
-  <audio id="player" style="color: #0d2136; width: 90vw; height: 10vh; margin: 2px " controls controlsList="nofullscreen" poster="img/logo.jpg" tabindex="0" loop="loop" src="" width="100%" muted autoplay></audio>
+  <div id="loading"></div>
+
+  <audio id="player" controls controlsList="nofullscreen" tabindex="0" loop="loop" src="" width="100%" autoplay ></audio>
 
   <div id="header">
     <textarea id='txtBox' placeholder="Example: Kaabil" value=""></textarea>
     <button id='loadBtn' onclick="viewImages()">LOAD</button>
   </div>
 
-  <div id="viewBox" ondblclick=" document.getElementById('player').src ='' "></div>
+  <div id="viewBox" ondblclick=" document.getElementById('player').src = ''; ThirdPartyAPI = ThirdPartyAPI === true ? false : true" ></div>
 
 <script>
 // https://api.vreden.my.id/api/v1/download/youtube/audio?url=https://www.youtube.com/watch?v=CPWEyB1Jl9g&quality=128
 // https://www.youtube.com/watch?v=CPWEyB1Jl9g
 
+let ThirdPartyAPI = true, currentJson = {};
+
+// Get Element By ID Shortcut (Jquery Style).
+const ID = (elementId) => document.getElementById(elementId);
+
 // Fetch JSON and view thumbnails.
 async function viewImages() {
-  let songName = document.getElementById('txtBox').value;
+  let songName = ID('txtBox').value;
   songName = songName ? songName : 'Kaabil';
+  Loading('Show');
   const req = await fetch('https://1nrp.val.run/songList' + '?query=' + songName);
   const media = await req.json();
-  document.getElementById('viewBox').innerHTML = '';
+  Loading('Hide');
+  currentJson = media;
+  ID('viewBox').innerHTML = '';
   let count = 1;
   for ( const song of media ) {
     if ( song.type == 'SONG' || song.type == 'VIDEO' ) {
-      const { name, videoId, artist: { name: singer }, thumbnails: [{ url: image }] } = song;
+      const { name, videoId, artist: { name: singer } } = song;
+      const image = song.thumbnails.find(img => img.width >= 120).url;
       const box = document.createElement('div');
       box.className = 'imgBox';
       box.innerHTML = ` 
@@ -133,18 +179,34 @@ async function viewImages() {
         <span class="songName">${count} - ${name}</span>
         <span class="singer">${singer}</span>
       `;
-      document.getElementById('viewBox').appendChild(box);
+      ID('viewBox').appendChild(box);
       count++;
     }
   }
 }
 
 async function PlayAudio(videoId) {
-    const res = await fetch('https://1nrp.val.run/songUrl' + '?vid=' + videoId);
+    Loading('Show');
+    const url = ThirdPartyAPI ? 'https://api.vreden.my.id/api/v1/download/youtube/audio?url=https://www.youtube.com/watch?v=' + videoId + '&quality=128' : 'https://1nrp.val.run/songUrl' + '?vid=' + videoId;
+    const res = await fetch(url);
     const data = await res.json();
-    const { link, processingTime } = data;
-    const player = document.getElementById('player');
+    Loading('Hide');
+    const link = data.link ?? data.result.download.url;
+    const player = ID('player');
     player.src = link;
+    const { name = 'Default' } = currentJson.find(song => song.videoId === videoId);
+    ID('txtBox').placeholder = name;
+}
+
+function Loading(status) {
+  const blurElems = ['player', 'header', 'viewBox'];
+  if (status === 'Show') {
+    ID('loading').className = 'loader';
+    blurElems.forEach((element) => ID(element).className = 'blurElements');
+  } else {
+    ID('loading').className = '';
+    for (const element of blurElems) { ID(element).className = '' }
+  }
 }
 
 </script>
