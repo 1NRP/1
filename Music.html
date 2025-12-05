@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html>
 <head>
@@ -40,10 +39,23 @@ body {
   width:80%;
   outline: 0;
   font-weight: 700;
-  font-size: 22px;
+  font-size: 20px;
 }
 #loadBtn:hover {
   background-color: #223344;
+}
+#hamburgerMenu {
+  position: absolute;
+  bottom: 10px;
+  z-index: 100;
+  right: 10px;
+  font-size: 14px;
+  font-weight: 1000;
+  transition: transform 0.4s ease;
+  color: #e2df12;
+  border: 2px solid #7c7676;
+  border-radius: 50px;
+  background-color: #470505b4;
 }
 #loadBtn {
   border:none;
@@ -55,11 +67,11 @@ body {
   color:#369
 }
 ::placeholder {
-  font-size: 22px;
+  font-size: 20px;
   font-weight: 700;
   color: #a4a4a4;
 }
-.singer {
+.channelName {
   color: #12777a;
   font-weight: 700;
   font-size: 14px; 
@@ -80,12 +92,35 @@ body {
   border: 2px solid #333;
   overflow-y: scroll;
   scrollbar-width: none;
-  background-color: #02121b;
+  background: linear-gradient(140deg, #02364b, #793c04);
   margin: 4px 0px 2px 0px;
   display: flex;
   flex-wrap: wrap;
   overflow-x: auto;
   flex-direction: row;
+}
+.selectOptions {
+  font-weight: 600;
+  color: #b4b4b4;
+  border: 2px dotted #555;
+  border-radius: 4px;
+  background-color: #02121b;
+  width: 90px;
+  padding: 2px;
+}
+.toolBar {
+  position: fixed;
+  bottom: 4%;
+  left: 4%;
+  padding: 4px;
+  background-color: #031b5c63;
+  border: solid 2px #04348f;
+  margin: 2px;
+  border-radius: 10px;
+  z-index: 20;
+  font-family: Arial, Courier, monospace, sans-serif;
+  font-size: 12px;
+  font-weight: 600;
 }
 .blurElements {
   filter: blur(10px);
@@ -138,55 +173,134 @@ body {
 </head>
 <body>
   <div id="loading"></div>
-
-  <audio id="player" controls controlsList="nofullscreen" tabindex="0" loop="loop" src="" width="100%" autoplay ></audio>
+  <!-- loop="loop" -->
+  <audio id="player" controls tabindex="0" src="" width="100%" autoplay ></audio> 
 
   <div id="header">
     <textarea id='txtBox' placeholder="Example: Kaabil" value=""></textarea>
     <button id='loadBtn' onclick="viewImages()">LOAD</button>
   </div>
 
-  <div id="viewBox" ondblclick=" document.getElementById('player').src = ''; ThirdPartyAPI = ThirdPartyAPI === true ? false : true" ></div>
+  <button id="hamburgerMenu" onclick="toggleToolbar(); style.transform = (style.transform === 'rotate(180deg)' ? 'rotate(0deg)' : 'rotate(180deg)');">☰</button>
+  <div id="viewBox" ondblclick=" document.getElementById('player').src = ''; ThirdPartyAPI = ThirdPartyAPI === true ? false : true" > </div>
+  
+  <div id="toolBar" class="toolBar">
+    <b style="color: #fff222"> Response Type : </b>
+    <select id="responseType" class="selectOptions">
+      <option value="video">Video</option>
+      <option value="channel">Channel</option>
+      <option value="playlist">Playlist</option>
+    </select>
+    <br></br>
+    <b style="color: #fff222"> 3rd Party API : </b>
+    <input type="checkbox" id="thirdPartyApi" style="transform: translateY(10%)" ></input>
+    <br></br>
+    <b style="color: #fff222"> Auto-Play Next : </b>
+    <input type="checkbox" id="autoPlay" checked style="transform: translateY(10%)" ></input>
+    <br></br>
+    <input type="radio" id="option1" name="choice" value="video" checked>
+    <label for="option1"> Video </label>
+    <input type="radio" id="option2" name="choice" value="playlist">
+    <label for="option2"> Playlist </label>
+  </div>
 
 <script>
 // https://api.vreden.my.id/api/v1/download/youtube/audio?url=https://www.youtube.com/watch?v=CPWEyB1Jl9g&quality=128
 // https://www.youtube.com/watch?v=CPWEyB1Jl9g
 
-let ThirdPartyAPI = true, currentJson = {};
-
 // Get Element By ID Shortcut (Jquery Style).
 const ID = (elementId) => document.getElementById(elementId);
 
+let currentJson = {};
+
 // Fetch JSON and view thumbnails.
-async function viewImages() {
-  let songName = ID('txtBox').value;
-  songName = songName ? songName : 'Kaabil';
+async function viewImages(playlist = null) {
+  const type = ID('responseType').value;
+  let songName = ID('txtBox').value.trim() || 'Kaabil Song';
+  songName = type === 'playlist' ? 'new hindi songs' : songName;
   Loading('Show');
-  const req = await fetch('https://1nrp.val.run/songList' + '?query=' + songName);
+  let url = type === 'playlist' ? '/songList' + '?query=' + songName + '&type=playlist' : '/songList' + '?query=' + songName + '&type=video';
+  url = playlist ? '/songList?type=getPlaylistItems' + '&id=' + playlist : url;
+  const req = await fetch(url);
+  const media = await req.json();
+  Loading('Hide');
+  currentJson = media;
+  ID('viewBox').innerHTML = '';
+  if (playlist) ID('viewBox').style.background = "linear-gradient(270deg, #792504, #031a44)";
+  let count = 1;
+  for ( const song of media ) {
+      const { videoId, playlistId, title, channelTitle, thumbnail } = song;
+      const box = document.createElement('div');
+      box.className = 'imgBox';
+      const imageHtmlLine = playlistId
+        ? ` <img src="${thumbnail}" onclick="viewImages('${playlistId}')" alt="Thumbnail Image" class="image"> `
+        : ` <img src="${thumbnail}" onclick="PlayAudio('${videoId}')" alt="Thumbnail Image" class="image"> `;
+        box.innerHTML = ` 
+        ${imageHtmlLine}
+        <span class="songName">${count} - ${title}</span>
+        <span class="channelName">${channelTitle}</span>
+      `;
+      ID('viewBox').appendChild(box);
+      count++;
+  }
+}
+
+ID('player').addEventListener('ended', () => {
+  const autoPlay = ID('autoPlay').checked;
+  const nextSong = currentJson.shift();
+  if (!autoPlay || !nextSong) return;
+  PlayAudio(nextSong.videoId);
+});
+
+async function viewPlaylists() {
+  let playListName = ID('txtBox').value;
+  playListName = playListName ? playListName : 'new hindi songs';
+  Loading('Show');
+  const req = await fetch('/songList' + '?query=' + playListName + '&type=playlist');
   const media = await req.json();
   Loading('Hide');
   currentJson = media;
   ID('viewBox').innerHTML = '';
   let count = 1;
   for ( const song of media ) {
-    if ( song.type == 'SONG' || song.type == 'VIDEO' ) {
-      const { name, videoId, artist: { name: singer } } = song;
-      const image = song.thumbnails.find(img => img.width >= 120).url;
+      const { playlistId, title, channelTitle, thumbnail } = song;
       const box = document.createElement('div');
       box.className = 'imgBox';
       box.innerHTML = ` 
-        <img src="${image}" onclick="PlayAudio('${videoId}')" alt="Thumbnail Image" class="image">
-        <span class="songName">${count} - ${name}</span>
-        <span class="singer">${singer}</span>
+        <img src="${thumbnail}" onclick="GetPlayListItems('${playlistId}, playlist')" alt="Thumbnail Image" class="image">
+        <span class="songName">${count} - ${title}</span>
+        <span class="channelName">${channelTitle}</span>
       `;
       ID('viewBox').appendChild(box);
       count++;
-    }
+  }
+}
+
+async function GetPlayListItems(playlistId) {
+  Loading('Show');
+  const req = await fetch('https://1nrp.val.run/playListSongs' + '?id=' + playlistId);
+  const media = await req.json();
+  Loading('Hide');
+  currentJson = media;
+  ID('viewBox').innerHTML = '';
+  let count = 1;
+  for ( const song of media ) {
+      const { videoId, title, channelTitle, thumbnail } = song;
+      const box = document.createElement('div');
+      box.className = 'imgBox';
+      box.innerHTML = ` 
+        <img src="${thumbnail}" onclick="PlayAudio('${videoId}')" alt="Thumbnail Image" class="image">
+        <span class="songName">${count} - ${title}</span>
+        <span class="channelName">${channelTitle}</span>
+      `;
+      ID('viewBox').appendChild(box);
+      count++;
   }
 }
 
 async function PlayAudio(videoId) {
     Loading('Show');
+    const ThirdPartyAPI = ID('thirdPartyApi').checked;
     const url = ThirdPartyAPI ? 'https://api.vreden.my.id/api/v1/download/youtube/audio?url=https://www.youtube.com/watch?v=' + videoId + '&quality=128' : 'https://1nrp.val.run/songUrl' + '?vid=' + videoId;
     const res = await fetch(url);
     const data = await res.json();
@@ -195,6 +309,7 @@ async function PlayAudio(videoId) {
     const player = ID('player');
     player.src = link;
     const { name = 'Default' } = currentJson.find(song => song.videoId === videoId);
+    ID('txtBox').value = '';
     ID('txtBox').placeholder = name;
 }
 
@@ -207,6 +322,12 @@ function Loading(status) {
     ID('loading').className = '';
     for (const element of blurElems) { ID(element).className = '' }
   }
+}
+
+function toggleToolbar() {
+    const toolbar = ID('toolBar');
+    const status = toolbar.style.display;
+    toolbar.style.display = status === 'none' ? 'block' : 'none';
 }
 
 </script>
