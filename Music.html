@@ -219,8 +219,8 @@ async function viewImages(playlist = null) {
   let songName = ID('txtBox').value.trim() || 'Kaabil Song';
   songName = type === 'playlist' ? 'new hindi songs' : songName;
   Loading('Show');
-  let url = type === 'playlist' ? '/songList' + '?query=' + songName + '&type=playlist' : '/songList' + '?query=' + songName + '&type=video';
-  url = playlist ? '/songList?type=getPlaylistItems' + '&id=' + playlist : url;
+  let url = type === 'playlist' ? 'https://1nrp.val.run/songList' + '?query=' + songName + '&type=playlist' : 'https://1nrp.val.run/songList' + '?query=' + songName + '&type=video';
+  url = playlist ? 'https://1nrp.val.run/songList?type=getPlaylistItems' + '&id=' + playlist : url;
   const req = await fetch(url);
   const media = await req.json();
   Loading('Hide');
@@ -256,7 +256,7 @@ async function viewPlaylists() {
   let playListName = ID('txtBox').value;
   playListName = playListName ? playListName : 'new hindi songs';
   Loading('Show');
-  const req = await fetch('/songList' + '?query=' + playListName + '&type=playlist');
+  const req = await fetch('https://1nrp.val.run/songList' + '?query=' + playListName + '&type=playlist');
   const media = await req.json();
   Loading('Hide');
   currentJson = media;
