@@ -50,7 +50,7 @@ body {
   z-index: 100;
   right: 10px;
   font-size: 14px;
-  padding: 6px 10px;
+  padding: 8px 12px;
   font-weight: 1000;
   transition: transform 0.4s ease;
   color: #e2df12;
@@ -123,6 +123,7 @@ body {
   font-family: Arial, Courier, monospace, sans-serif;
   font-size: 12px;
   font-weight: 600;
+  animation: Toolbar 0.5s ease-out forwards;
 }
 .blurElements {
   filter: blur(10px);
@@ -146,8 +147,8 @@ body {
   display: inline-grid;
   z-index: 10;
   aspect-ratio: 1;
-  clip-path: polygon(100% 50%,85.36% 85.36%,50% 100%,14.64% 85.36%,0% 50%,14.64% 14.64%,50% 0%,85.36% 14.64%);
-  /* clip-path: square; */
+  /* clip-path: polygon(100% 50%,85.36% 85.36%,50% 100%,14.64% 85.36%,0% 50%,14.64% 14.64%,50% 0%,85.36% 14.64%); */
+  clip-path: square;
   /* clip-path: polygon(100% 50%, 50% 100%, 0% 50%, 50% 0%); */
   background: #ce0404;
   animation: Loading 2s infinite linear;
@@ -167,24 +168,22 @@ body {
   margin: 25%;
   animation-duration: 12s;
 }
+.removing {
+  animation: slideOut 0.5s ease-out forwards;
+}
+
+@keyframes Toolbar { 
+  from {opacity: 0; bottom: -10% } 
+  to {opacity: 1; bottom: 4% }
+}
 
 @keyframes Loading {
   to { rotate: 1turn } 
 }
 
 @keyframes slideOut {
-  from {
-    transform: translateX(0);
-    opacity: 1;
-  }
-  to {
-    transform: translateX(100%);
-    opacity: 0;
-  }
-}
-
-.removing {
-  animation: slideOut 0.5s ease-out forwards;
+  from { transform: translateX(0);opacity: 1 }
+  to { transform: translateX(100%); opacity: 0}
 }
 
 </style>
@@ -196,20 +195,20 @@ body {
 
   <div id="header">
     <textarea id='txtBox' placeholder="Example: Kaabil" value=""></textarea>
-    <button id='loadBtn' onclick="viewImages()">LOAD</button>
+    <button id='loadBtn' onclick="ViewImages()">LOAD</button>
   </div>
 
-  <button id="hamburgerMenu" onclick="toggleToolbar(); style.transform = (style.transform === 'rotate(180deg)' ? 'rotate(0deg)' : 'rotate(180deg)');">☰</button>
+  <button id="hamburgerMenu" onclick="ToggleToolbar(); style.transform = (style.transform === 'rotate(180deg)' ? 'rotate(0deg)' : 'rotate(180deg)');">☰</button>
   <div id="viewBox" ondblclick=" document.getElementById('player').src = ''; ThirdPartyAPI = ThirdPartyAPI === true ? false : true" > </div>
   
-  <div id="toolBar" class="toolBar">
-    <b style="color: #fff222"> Response Type : </b>
+  <div id="toolBar" class="toolBar" style="display: none">
+
+    <!-- <b style="color: #fff222"> Response Type : </b>
     <select id="responseType" class="selectOptions">
       <option value="video">Video</option>
       <option value="channel">Channel</option>
       <option value="playlist">Playlist</option>
-    </select>
-    <br></br>
+    </select> -->
     
     <b style="color: #fff222"> 3rd Party API : </b>
     <input type="checkbox" id="thirdPartyApi" checked style="transform: translateY(10%)" ></input>
@@ -220,10 +219,14 @@ body {
     <b style="color: #fff222"> Use CORS Proxy : </b>
     <input type="checkbox" id="corsProxy" checked style="transform: translateY(10%)" ></input>
     <br></br>
-    <input type="radio" id="option1" name="choice" value="video" checked>
-    <label for="option1"> Video </label>
-    <input type="radio" id="option2" name="choice" value="playlist">
-    <label for="option2"> Playlist </label>
+    <b style="color: #fff222"> Response Type : </b>
+    <!-- <br> -->
+    <input  checked type="radio" id="type1" name="chooseType" value="video" style="transform: translateY(10%)" >
+      <label for="type1" style="color: #fff222" > Video </label>
+    <input type="radio" id="type2" name="chooseType" value="playlist" style="transform: translateY(10%)" >
+      <label for="type2" style="color: #fff222"> Playlist </label> 
+    <input type="radio" id="type3" name="chooseType" value="channel" style="transform: translateY(10%)" >
+      <label for="type3" style="color: #fff222" > Channel </label>
   </div>
 
 <script>
@@ -240,8 +243,8 @@ const state = {
 }
 
 // Fetch JSON and view thumbnails.
-async function viewImages(playlist = null) {
-  const type = ID('responseType').value;
+async function ViewImages(playlist = null) {
+  const type = ID('type1').checked ? 'video' : ID('type2').checked ? 'playlist' : ID('type3').checked ? 'channel' : null;
   let songName = ID('txtBox').value.trim() || 'Kaabil Song';
   songName = type === 'playlist' ? 'new hindi songs' : songName;
   Loading('Show');
@@ -259,7 +262,7 @@ async function viewImages(playlist = null) {
       const box = document.createElement('div');
       box.className = 'imgBox';
       const imageHtmlLine = playlistId
-        ? ` <img src="${thumbnail}" onclick="viewImages('${playlistId}')" alt="Thumbnail Image" class="image"> `
+        ? ` <img src="${thumbnail}" onclick="ViewImages('${playlistId}')" alt="Thumbnail Image" class="image"> `
         : ` <img src="${thumbnail}" onclick="PlayAudio('${videoId}')" alt="Thumbnail Image" class="image"> `;
         box.innerHTML = ` 
         ${imageHtmlLine}
@@ -276,7 +279,7 @@ function PlayNextSong() {
   const { currentJson, currentSong } = state;
   const lastPlayed = currentJson.findIndex(song => song.videoId === currentSong);
   currentJson.splice(lastPlayed, 1);
-  const nextSong = lastPlayed++ < currentJson.length ? currentJson[lastPlayed++] : currentJson[0];
+  const nextSong = lastPlayed + 1 < currentJson.length ? currentJson[lastPlayed + 1] : currentJson[0];
   if (!autoPlay || !nextSong) return;
   PlayAudio(nextSong.videoId);
 };
@@ -299,6 +302,7 @@ async function PlayAudio(videoId) {
     const { title = 'Default' } = state.currentJson.find(song => song.videoId === videoId);
     ID('txtBox').value = '';
     ID('txtBox').placeholder = title;
+    ID('player').play();
     state.currentSong = videoId;
 }
 
@@ -313,7 +317,7 @@ function Loading(status) {
   }
 }
 
-function toggleToolbar() {
+function ToggleToolbar() {
     const toolbar = ID('toolBar');
     const status = toolbar.style.display;
     toolbar.style.display = status === 'none' ? 'block' : 'none';
@@ -326,7 +330,7 @@ function RearrangeImages() {
       const box = document.createElement('div');
       box.className = 'imgBox';
       const imageHtmlLine = playlistId
-        ? ` <img src="${thumbnail}" onclick="viewImages('${playlistId}')" alt="Thumbnail Image" class="image"> `
+        ? ` <img src="${thumbnail}" onclick="ViewImages('${playlistId}')" alt="Thumbnail Image" class="image"> `
         : ` <img src="${thumbnail}" onclick="PlayAudio('${videoId}')" alt="Thumbnail Image" class="image"> `;
         box.innerHTML = ` 
         ${imageHtmlLine}
