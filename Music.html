@@ -11,11 +11,11 @@ body {
   background-color: #0d2136;
   color: #fff;
   scrollbar-width: none;
-  font-family: Arial, monospace, sans-serif;
 }
 #player {
-  border: 4px solid #6aa9;
+  border: 4px solid #6aa8;
   border-radius: 50px;
+  background: linear-gradient(30deg, #800, #080, #008);
   background-color: #08f;
   width: 94vw;
   max-height: 10vh;
@@ -37,9 +37,10 @@ body {
   scrollbar-width: none;
   background-color:#021133;
   width:80%;
+  font-family: arial, monospace, cursive, sans-serif;
   outline: 0;
-  font-weight: 700;
-  font-size: 20px;
+  font-weight: 400;
+  font-size: 22px;
 }
 #loadBtn:hover {
   background-color: #223344;
@@ -68,9 +69,7 @@ body {
   color:#369
 }
 ::placeholder {
-  font-size: 20px;
-  font-weight: 700;
-  color: #a4a4a4;
+  color: #848484;
 }
 .channelName {
   color: #12777a;
@@ -111,11 +110,11 @@ body {
 }
 .toolBar {
   position: fixed;
-  bottom: 4%;
-  left: 4%;
-  min-width: 70vw;
+  bottom: 10px;
+  left: 10px;
+  width: 90vw;
   padding: 4px;
-  background-color: #031b5ca1;
+  background: linear-gradient(140deg, #006, #060);
   border: solid 2px #04348f;
   margin: 2px;
   border-radius: 10px;
@@ -123,7 +122,7 @@ body {
   font-family: Arial, Courier, monospace, sans-serif;
   font-size: 12px;
   font-weight: 600;
-  animation: Toolbar 0.5s ease-out forwards;
+  animation: Toolbar 0.5s ease;
 }
 .blurElements {
   filter: blur(10px);
@@ -147,8 +146,8 @@ body {
   display: inline-grid;
   z-index: 10;
   aspect-ratio: 1;
-  /* clip-path: polygon(100% 50%,85.36% 85.36%,50% 100%,14.64% 85.36%,0% 50%,14.64% 14.64%,50% 0%,85.36% 14.64%); */
-  clip-path: square;
+  clip-path: polygon(100% 50%,85.36% 85.36%,50% 100%,14.64% 85.36%,0% 50%,14.64% 14.64%,50% 0%,85.36% 14.64%);
+  /* clip-path: square; */
   /* clip-path: polygon(100% 50%, 50% 100%, 0% 50%, 50% 0%); */
   background: #ce0404;
   animation: Loading 2s infinite linear;
@@ -163,6 +162,16 @@ body {
   animation: inherit;
   animation-duration: 8s;
 }
+.changePage {
+  border: 2px solid #8e9eee;
+  padding: 0px 20%;
+  margin:5px;
+  border-radius: 30px;
+  background-color: #02121b;
+  font-size: 30px;
+  font-weight: 800;
+  color: #940
+}
 .loader:after {
   background: #043772;
   margin: 25%;
@@ -173,8 +182,8 @@ body {
 }
 
 @keyframes Toolbar { 
-  from {opacity: 0; bottom: -10% } 
-  to {opacity: 1; bottom: 4% }
+  from { opacity: 0; bottom: -10% } 
+  to { opacity: 1; bottom: 4% }
 }
 
 @keyframes Loading {
@@ -209,23 +218,26 @@ body {
       <option value="channel">Channel</option>
       <option value="playlist">Playlist</option>
     </select> -->
+    <button class="changePage" onclick="ChangePage('Previous')"> < </button>
+    <button class="changePage" onclick="ChangePage('Next')"> > </button>
+    <br>
+    <input type="checkbox" id="thirdPartyApi" checked style="transform: translateY(20%)" ></input>
+    <b style="color: #fff222"> Third Party API </b>
+    <br></br>
     
-    <b style="color: #fff222"> 3rd Party API : </b>
-    <input type="checkbox" id="thirdPartyApi" checked style="transform: translateY(10%)" ></input>
+    <input type="checkbox" id="autoPlay" checked style="transform: translateY(20%)" ></input>
+    <b style="color: #fff222"> Auto-Play Next </b>
     <br></br>
-    <b style="color: #fff222"> Auto-Play Next : </b>
-    <input type="checkbox" id="autoPlay" checked style="transform: translateY(10%)" ></input>
+    
+    <input type="checkbox" id="corsProxy" checked style="transform: translateY(20%)" ></input>
+    <b style="color: #fff222"> Use CORS Proxy </b>
     <br></br>
-    <b style="color: #fff222"> Use CORS Proxy : </b>
-    <input type="checkbox" id="corsProxy" checked style="transform: translateY(10%)" ></input>
-    <br></br>
-    <b style="color: #fff222"> Response Type : </b>
     <!-- <br> -->
-    <input  checked type="radio" id="type1" name="chooseType" value="video" style="transform: translateY(10%)" >
+    <input  checked type="radio" id="type1" name="chooseType" value="video" style="transform: translateY(20%)" >
       <label for="type1" style="color: #fff222" > Video </label>
-    <input type="radio" id="type2" name="chooseType" value="playlist" style="transform: translateY(10%)" >
+    <input type="radio" id="type2" name="chooseType" value="playlist" style="transform: translateY(20%)" >
       <label for="type2" style="color: #fff222"> Playlist </label> 
-    <input type="radio" id="type3" name="chooseType" value="channel" style="transform: translateY(10%)" >
+    <input type="radio" id="type3" name="chooseType" value="channel" style="transform: translateY(20%)" >
       <label for="type3" style="color: #fff222" > Channel </label>
   </div>
 
@@ -239,14 +251,15 @@ const state = {
   currentSong: '',
   touchstartX: 0,
   touchendX: 0,
+  paginationTokens: [],
+  currentPaginationToken: '',
   touchedElement: null
 }
 
 // Fetch JSON and view thumbnails.
 async function ViewImages(playlist = null) {
   const type = ID('type1').checked ? 'video' : ID('type2').checked ? 'playlist' : ID('type3').checked ? 'channel' : null;
-  let songName = ID('txtBox').value.trim() || 'Kaabil Song';
-  songName = type === 'playlist' ? 'new hindi songs' : songName;
+  const songName = ID('txtBox').value.trim() || 'Kaabil Song';
   Loading('Show');
   let url = type === 'playlist' ? 'https://1nrp.val.run/songList' + '?query=' + songName + '&type=playlist' : 'https://1nrp.val.run/songList' + '?query=' + songName + '&type=video';
   url = playlist ? 'https://1nrp.val.run/songList?type=getPlaylistItems' + '&id=' + playlist : url;
@@ -315,6 +328,11 @@ function Loading(status) {
     ID('loading').className = '';
     for (const element of blurElems) { ID(element).className = '' }
   }
+}
+
+function ChangePage(dir) {
+  const { paginationTokens: pages, currentPaginationToken: token } = state;
+  const nowToken = dir === 'Next' ? pages.at(-1) : pages[pages.indexOf(token) + 1];
 }
 
 function ToggleToolbar() {
