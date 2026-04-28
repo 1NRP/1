@@ -12,7 +12,7 @@ body {
   color: #fff;
 }
 #header {
-  align-item:center;
+  align-items:center;
   display:flex;
   flex-direction:row;
   border:2px dashed #358;
@@ -71,31 +71,38 @@ body {
 </head>
 <body>
 <div id="header">
-    <textarea id='txtBox' placeholder="Example: 140-160" ></textarea>
-    <button id='loadBtn' onclick="viewImages()">LOAD</button>
+    <textarea id='txtBox' placeholder="Example: 140-160" >0-50</textarea>
+    <button id='loadBtn' onclick="ViewImages()">LOAD</button>
 </div>
 <div id="viewBox"></div>
 
-<script>
+<script> 
+ 
 // Fetch JSON and view thumbnails.
-async function viewImages() {
-var range = document.getElementById('txtBox').value;
-var parts = range.split('-');
-var start = +parts[0], end = +parts[1]; // The Unary '+' operator is shorthand for converting a string(parts[0] is returned as a string from "split('-')" method) to a number. It is similar to "parseInt(parts[0])" and "Number(parts[0])".
-if (range === '') {
-   alert('Please Specify The Range First.');
-   return;
-} else if (end-start > 50) {
-  alert('Range should be less than 50. It is useful for ensuring less bandwidth usage during the Thumbnail Fetching process.'); 
-  return; // "return" would exit the function. 
-}
-var response = await fetch("https://srbo3gia676hprqy.public.blob.vercel-storage.com/Others/KV-Store-Saved-TB-Link-Thumbnails.json");
-var json = await response.json();
-var jsonrange = json.slice(start, end); // In "array.slice()" method 1st number is inclusive while 2nd number is not. Adding 1 to end (end+1) will solve this.
-let count = start;
-for ( var obj of jsonrange ) {
-    var link = obj.url, image = obj.img;
-    var box = document.createElement('div');
+let jsonArray = []
+
+async function ViewImages() {
+  const parts = document.getElementById('txtBox').value.trim().split('-');
+  const start = +parts[0], end = +parts[1];
+  
+  if ( parts[0] === '' || parts[1] === '' ) {
+    alert('Please Specify The Range First.');
+    return;
+
+  } else if (end - start > 50) {
+    alert('Range should be less than 50. It is useful for ensuring less bandwidth usage during the Thumbnail Fetching process.'); 
+    return;
+  }
+  
+  if (jsonArray.length === 0) {
+    const response = await fetch("https://srbo3gia676hprqy.public.blob.vercel-storage.com/Others/KV-Store-Saved-TB-Link-Thumbnails.json");
+    jsonArray = await response.json();
+  }
+
+  const jsonrange = jsonArray.slice(start, end + 1); // In "array.slice()" method 1st number is inclusive while 2nd number is not. Adding 1 to end (end+1) will solve this.
+  let count = start;
+  for ( const { url: link, img: image } of jsonrange ) {
+    const box = document.createElement('div');
     box.className = 'imgBox';
     box.innerHTML = ` 
       <img src="${image}" onclick="navigator.clipboard.writeText('https://teraboxapp.com/s/${link}')" alt="Thumbnail Image" class="image">
@@ -104,7 +111,16 @@ for ( var obj of jsonrange ) {
     document.getElementById('viewBox').appendChild(box);
     count++;
   }
-}                   
+} 
+
+document.getElementById('viewBox').addEventListener('dblclick', () => {
+  const txtBox = document.getElementById('txtBox') 
+  const parts = txtBox.value.trim().split('-') 
+  const lastItem = jsonArray?.length, newStart = Math.min( +parts[0] + 50, lastItem ), newEnd = Math.min( +parts[1] + 50, lastItem )
+  txtBox.value = newStart + '-' + newEnd 
+  ViewImages() 
+}) 
+  
 </script>
 </body>
-</html>
+</html> 
