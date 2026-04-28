@@ -12,7 +12,6 @@ body {
   color: #fff;
 }
 #header {
-  align-items:center;
   display:flex;
   flex-direction:row;
   border:2px dashed #358;
@@ -79,7 +78,7 @@ body {
 <script> 
  
 // Fetch JSON and view thumbnails.
-let jsonArray = []
+let jsonArray
 
 async function ViewImages() {
   const parts = document.getElementById('txtBox').value.trim().split('-');
@@ -94,7 +93,7 @@ async function ViewImages() {
     return;
   }
   
-  if (jsonArray.length === 0) {
+  if ( !jsonArray ) {
     const response = await fetch("https://srbo3gia676hprqy.public.blob.vercel-storage.com/Others/KV-Store-Saved-TB-Link-Thumbnails.json");
     jsonArray = await response.json();
   }
@@ -115,12 +114,12 @@ async function ViewImages() {
 
 document.getElementById('viewBox').addEventListener('dblclick', () => {
   const txtBox = document.getElementById('txtBox') 
-  const parts = txtBox.value.trim().split('-') 
-  const lastItem = jsonArray?.length, newStart = Math.min( +parts[0] + 50, lastItem ), newEnd = Math.min( +parts[1] + 50, lastItem )
+  const parts = txtBox.value.split('-') 
+  const lastItem = jsonArray?.length ?? 100, newStart = Math.min( +parts[0] + 50, lastItem ), newEnd = Math.min( +parts[1] + 50, lastItem )
   txtBox.value = newStart + '-' + newEnd 
   ViewImages() 
 }) 
-  
+
 </script>
 </body>
-</html> 
+</html>
