@@ -4,7 +4,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link rel="icon" sizes="192x192" href="https://1nrp.github.io/1/Images/N-Logo1.png">
   <meta charset="utf-8">
-  <title> Nihar's Websites </title>
+  <title> Webpages </title>
 </head>
 <style>
   body {
@@ -48,6 +48,11 @@
   
 </center>
 
+<script>
+// Call the Vercel endpoint on pageload, so that the server is warmed up, avoiding cold starts.
+(async () => await fetch('https://1nrp.vercel.app'))()
+</script>
+  
 </body> 
 </html>
 
