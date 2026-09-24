@@ -15,10 +15,8 @@
     channel.addEventListener('message', (event) => {
       const data = event.data;
       if (data.type == 'request') {
-        alert('received request');
-        window.parent?.postMessage(data, apiOrigin);
+        globalThis.parent?.postMessage(data, apiOrigin);
       } else if (data.type == 'response') {
-        alert('received response');
         globalThis.parent?.postMessage(data, vidOrigin);
       }
     });
