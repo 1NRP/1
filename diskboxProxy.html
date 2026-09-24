@@ -1,0 +1,27 @@
+<html>
+  <body>
+    <h3> DiskBox API Gateway </h3>
+
+    <script>
+    const channel = new BroadcastChannel('DiskBox_API_Data');
+
+    globalThis.addEventListener('message', (event) => {
+      channel.postMessage(event.data);
+    });
+
+    const vidOrigin = 'https://1nrp.vercel.app';
+    const apiOrigin = 'https://teraboxdl.site';
+
+    channel.addEventListener('message', (event) => {
+      const data = event.data;
+      if (data.type == 'request') {
+        alert('received request');
+        window.parent?.postMessage(data, apiOrigin);
+      } else if (data.type == 'response') {
+        alert('received response');
+        globalThis.parent?.postMessage(data, vidOrigin);
+      }
+    });
+    </script>
+  </body>
+</html>
